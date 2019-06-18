@@ -25,7 +25,7 @@ public class BMPFileCopyPixelByPixel {
 		for (int y = 0; y < simpleFaceRaster.getHeight(); y++) {
 			for (int x = 0; x < simpleFaceRaster.getWidth(); x++) {
 				RGBPixel pixel = new RGBPixel(simpleFaceRaster.getPixel(x, y, new int[3]));
-				output.setRGB(x, y, pixel.getOriginalGreenChannel());
+				output.setRGB(x, y, pixel.getChannel(Channel.GREEN));
 				
 			}
 		}
