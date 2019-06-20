@@ -15,7 +15,7 @@ public class RGBPixel {
 		this.rgb = rgb;
 	}
 
-	public int getOriginal() {
+	public int getRGBColour() {
 		return makeRGB(rgb[0], rgb[1], rgb[2]);
 	}
 
@@ -47,8 +47,17 @@ public class RGBPixel {
 		return input ^ (input >> 1);
 	}
 	
+	public RGBPixel makeBinaryCodePixelFromGray() {
+		int[] binaryRGB = rgb.clone();
+		for (int i = 0; i < binaryRGB.length; i++) {
+			binaryRGB[i] = convertGrayToBinary(rgb[i]);
+		}
+		return new RGBPixel(binaryRGB);
+	}
+
+	
 	// from https://www.geeksforgeeks.org/decimal-equivalent-gray-code-inverse/
-	static int inversegrayCode(int n) {
+	static int convertGrayToBinary(int n) {
 		int inv = 0;
 
 		// Taking xor until n becomes zero

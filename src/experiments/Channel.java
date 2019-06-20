@@ -34,4 +34,16 @@ public enum Channel {
 		}
 		return RED;
 	}
+	
+	public static int channelMapping (Channel channel) {
+		switch(channel) {
+		case RED:
+			return 0;
+		case GREEN:
+			return 1;
+		case BLUE:
+			return 2;
+		}
+		return -1;
+	}
 }

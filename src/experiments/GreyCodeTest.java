@@ -65,11 +65,11 @@ public class GreyCodeTest {
 	private static void saveBitMaps(BufferedImage[] bitmaps, String path) {
 		for (int ChannelBitIndex = 0; ChannelBitIndex < RGBPixel.NUMBER_OF_BITS_PER_CHANNEL; ChannelBitIndex++) {
 			String colourPath = ChannelBitIndex + path;
-			savePNG(bitmaps[ChannelBitIndex], colourPath);
+			saveBMP(bitmaps[ChannelBitIndex], colourPath);
 		}
 	}
 	
-	private static void savePNG(final BufferedImage bi, final String path) {
+	private static void saveBMP(final BufferedImage bi, final String path) {
 		try {
 			RenderedImage rendImage = bi;
 			ImageIO.write(rendImage, "bmp", new File(path));
