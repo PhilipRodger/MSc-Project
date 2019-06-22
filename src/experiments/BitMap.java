@@ -277,6 +277,15 @@ public class BitMap {
 		}
 	}
 	
+	public BitMap(BitMap toClone) {
+		width = toClone.width;
+		height = toClone.height;
+		image = new boolean[toClone.image.length][];
+		for (int i = 0; i < image.length; i++) {
+			image[i] = toClone.image[i].clone();
+		}
+	}
+	
 	public static void main(String[] args) {
 
 		//System.out.println(maxComplexity(8, 8));

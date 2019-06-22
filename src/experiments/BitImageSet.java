@@ -56,6 +56,21 @@ public class BitImageSet {
 		}
 	}
 	
+	public BitImageSet(BitImageSet toClone) {
+		width = toClone.width;
+		height = toClone.height;
+		greyEncoded = toClone.greyEncoded;
+		bitmaps = new BitMap[toClone.bitmaps.length][];
+		
+		// make deep copy of bitmaps
+		for (int i = 0; i < bitmaps.length; i++) {
+			bitmaps[i] = new BitMap[toClone.bitmaps[i].length];
+			for (int j = 0; j < bitmaps[i].length; j++) {
+				bitmaps[i][j] = new BitMap(toClone.bitmaps[i][j]);
+			}
+		}
+	}
+	
 	public void convertToBMPFile(String path) {
 		BufferedImage image = getBufferedImage();
 		saveImage(image, path);
@@ -163,6 +178,63 @@ public class BitImageSet {
 		convertToBMPFile(path);
 	}
 	
+	public double estimateTheoreticalMapProportion(int segmentWidth, int segmentHeight, double minimumComplexity) {
+		BitImageSet copy = new BitImageSet(this);
+		
+		// Calculate total number of substitutions.
+		int replacements = 0;
+		for (int i = 0; i < bitmaps.length; i++) {
+			for (int j = 0; j < bitmaps[i].length; j++) {
+				// inefficient but fine to work out this
+				replacements += copy.bitmaps[i][j].replaceWithRandomSegmentsAboveAlphaComplexity(segmentWidth, segmentHeight, minimumComplexity);
+			}
+		}
+		System.out.println("Total replacements: " + replacements);
+		
+		// Calculate minimum number of bits to represent each replacement.
+		int temp = replacements;
+		int numberOfBitsRequired = 0;
+		while (temp > 0) {
+			temp = temp / 2;
+			numberOfBitsRequired++;
+		}
+		System.out.println("Minimum number of bits to represent each replacement:" + numberOfBitsRequired);
+		
+		// Estimate proportion of segments that require conjugation mapping. 
+		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000);
+		double[] percent = distributionAsPercent(a);
+		double[] complexityAlphas = BitMap.complexityAlpha(segmentWidth, segmentHeight);
+		double percentageNeedingConjugation = 0.0;
+		for (int i = 0; i < complexityAlphas.length; i++) {
+			if(complexityAlphas[i] < minimumComplexity) {
+				percentageNeedingConjugation += percent[i];
+			}
+		}
+		System.out.println("Estimated segment % requiring conjugation: " + percentageNeedingConjugation);
+		
+		
+		double numberOfConjugates = (percentageNeedingConjugation / 100) * replacements;
+		System.out.println("Estimated number of conjugates in image: " + numberOfConjugates);
+		
+		double totalSpaceNeededForConjMap = numberOfConjugates * numberOfBitsRequired;
+		System.out.println("Estimated bits for map: " + totalSpaceNeededForConjMap);
+		
+		double totalSegmentReplaceSpace = segmentWidth * segmentHeight * replacements;
+		System.out.println("Total replaceable bits: " + totalSegmentReplaceSpace);
+		
+		double useableSpace = totalSegmentReplaceSpace - totalSpaceNeededForConjMap;
+		System.out.println("Usable space: " + useableSpace);
+		
+		double proportionUsable = useableSpace / totalSegmentReplaceSpace;
+		System.out.println("Usable proportion: " + proportionUsable);
+		
+		double percentUsable = proportionUsable * 100;
+		System.out.println("Usable percentage: " + percentUsable);
+		
+		return proportionUsable;
+
+	}
+	
 	private void saveImage(BufferedImage image, String path) {
 		try {
 			ImageIO.write(image, "bmp", new File(path));
@@ -199,11 +271,11 @@ public class BitImageSet {
 		//test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");
 		
 //		// frames
-		int width = 8;
-		int height = 8;
+		int width = 2;
+		int height = 2;
 		//Channel channel = Channel.RED;
 		//int channelBit = 0;
-		double minComplexity = 0.4;
+		double minComplexity = 0.35;
 		
 		//double maxComplexity = 0;
 		
@@ -249,8 +321,20 @@ public class BitImageSet {
 //		}
 		
 		// Make random replacement segments when above threshold
-		test.saveBMPWithRandomSegmentsAboveAlphaComplexity("Test", ".bmp", width, height, minComplexity);
-		//test.saveBitMapImages("CheckingWhichBitmap", ".bmp");
+		//test.saveBMPWithRandomSegmentsAboveAlphaComplexity("lena_sharp", ".bmp", width, height, minComplexity);
+		//test.saveBitMapImages("lenasharpLSB", ".bmp");
+		
+		// Make a set of complexity replaced segments over a bunch of complexities and segment sizes. 
+//		for (int i = 1; i <= 512; i= i*2) {
+//			for (int j = 0; j < 11; j++) {
+//				BitImageSet copy = new BitImageSet(test);
+//				double minComplex = ((j*1.0)/10);
+//				copy.saveBMPWithRandomSegmentsAboveAlphaComplexity("lena_color", ".bmp", i, i, minComplex);
+//			}
+//		}
+		
+		test.estimateTheoreticalMapProportion(width, height, minComplexity);
+		
 		System.out.println("End Of main");
 	}
 }
