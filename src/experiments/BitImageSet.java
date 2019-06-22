@@ -5,6 +5,7 @@ import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Savepoint;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -121,6 +122,7 @@ public class BitImageSet {
 		}
 	}
 	
+	
 	public void saveBitMapImage(String baseName, String fileExtension, int channelIndex, int bitIndex) {
 		BufferedImage bitmapImage = bitmaps[channelIndex][bitIndex].getBitMapImage(Channel.getPureColour(Channel.channelMapping(channelIndex)));
 		String encoding = "BinaryEncoded"; 
@@ -129,6 +131,36 @@ public class BitImageSet {
 		}
 		String path = baseName + Channel.channelMapping(channelIndex) + bitIndex  + encoding + fileExtension;
 		saveImage(bitmapImage, path);
+	}
+	
+	public void saveBitMapImageHighlightComplexity(String baseName, String fileExtension, Channel channel, int bitIndex, int frameWidth, int frameHeight, double minimumComplexity, double maximumComplexity) {
+		BufferedImage bitmapImage = bitmaps[Channel.channelMapping(channel)][bitIndex].getBitMapImageBlackReplaced(Channel.getPureColour(channel), frameWidth, frameHeight, minimumComplexity, maximumComplexity);
+		String encoding = "BinaryEncoded"; 
+		if (greyEncoded) {
+			encoding = "GreyEncoded";
+		}
+		String path = baseName + channel + bitIndex + encoding + "Frame" + frameWidth + "X" + frameHeight + "MinComplexity" + minimumComplexity + "MaxComplexity" + maximumComplexity + fileExtension;
+		saveImage(bitmapImage, path);
+	}
+	
+	public void saveBMPWithRandomSegmentsAboveAlphaComplexity(String baseName, String fileExtension, int segmentWidth, int segmentHeight, double minimumComplexity) {
+		int countReplacement = 0;
+		for (int i = 0; i < bitmaps.length; i++) {
+			for (int j = 0; j < bitmaps[i].length; j++) {
+				countReplacement += bitmaps[i][j].replaceWithRandomSegmentsAboveAlphaComplexity(segmentWidth, segmentHeight, minimumComplexity);
+			}
+		}
+		String encoding = "BinaryEncoded"; 
+		if (greyEncoded) {
+			encoding = "GreyEncoded";
+		}
+		int bitsReplaced = segmentHeight * segmentWidth * countReplacement;
+		int bytes = bitsReplaced / 8;
+		System.out.println(countReplacement + " x " + segmentHeight + "X" + segmentWidth + "replacements = " + bitsReplaced + "bits added or " + bytes + "bytes");
+		
+		
+		String path = baseName + encoding + "Segment" + segmentWidth + "X" + segmentHeight + "Min"+ minimumComplexity +"Complexity" + bytes + "BytesAdded" + fileExtension;
+		convertToBMPFile(path);
 	}
 	
 	private void saveImage(BufferedImage image, String path) {
@@ -167,40 +199,58 @@ public class BitImageSet {
 		//test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");
 		
 //		// frames
-		int width = 4;
-		int height = 4;
-		Channel channel = Channel.GREEN;
+		int width = 8;
+		int height = 8;
+		//Channel channel = Channel.RED;
+		//int channelBit = 0;
+		double minComplexity = 0.4;
+		
+		//double maxComplexity = 0;
+		
+		// Make a visual version of replacement in bitmap.
+		//test.saveBitMapImageHighlightComplexity("test", ".bmp", channel, channelBit, width, height, minComplexity, maxComplexity);
+		
+//		for (int i = 1; i < 65; i++) {
+//			//Make a visual representation of what will be replaced 
+//			for (int j = 0; j < 1; j++) {
+//				test.saveBitMapImageHighlightComplexity("test", ".bmp", channel, j, i, i, minComplexity, maxComplexity);
+//			}	
+//		}
+		
 
 //		Complexity distribution of one bitmap
-		System.out.println("Bit 0 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 0)));
-		System.out.println("Bit 1 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 1)));
-		System.out.println("Bit 2 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 2)));
-		System.out.println("Bit 3 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 3)));
-		System.out.println("Bit 4 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 4)));
-		System.out.println("Bit 5 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 5)));
-		System.out.println("Bit 6 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 6)));
-		System.out.println("Bit 7 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 7)));
-
-		
-//		Complexity distribution of one channel
-		System.out.println("Whole Distribution:" + Arrays.toString(test.getChannelBitMapCompexityDistribution(width, height, channel)));
-
-
-		
-		System.out.println("Random Distribution:" + Arrays.toString(BitMap.getRandomComplexityDistribution(width, height, 100000)));
-		
-		System.out.println("/////////////////////////////////////////////////////////////////////////////////////////////////////////");
+//		System.out.println("Bit 0 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 0)));
+//		System.out.println("Bit 1 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 1)));
+//		System.out.println("Bit 2 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 2)));
+//		System.out.println("Bit 3 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 3)));
+//		System.out.println("Bit 4 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 4)));
+//		System.out.println("Bit 5 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 5)));
+//		System.out.println("Bit 6 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 6)));
+//		System.out.println("Bit 7 Distribution:" + Arrays.toString(test.getBitMapCompexityDistribution(width, height, channel, 7)));
+//
+//		
+////		Complexity distribution of one channel
+//		System.out.println("Whole Distribution:" + Arrays.toString(test.getChannelBitMapCompexityDistribution(width, height, channel)));
+//
+//
+//		
+//		System.out.println("Random Distribution:" + Arrays.toString(BitMap.getRandomComplexityDistribution(width, height, 100000)));
+//		
+//		System.out.println("/////////////////////////////////////////////////////////////////////////////////////////////////////////");
 		//int[] a = test.getChannelBitMapCompexityDistribution(width, height, channel);
 		//int[] a = test.getBitMapCompexityDistribution(width, height, channel, 3);
-		int[] a = BitMap.getRandomComplexityDistribution(width, height, 1000000);
-		double[] percent = distributionAsPercent(a);
-		double[] complexityAlphas = BitMap.complexityAlpha(width, height);
-		for (int i = 0; i < complexityAlphas.length; i++) {
-			if(percent[i] != 0) {
-				System.out.println(String.format("Alpha Complexity Value: %f  Percent: %f %%", complexityAlphas[i], percent[i]));
-			}
-		}
+//		int[] a = BitMap.getRandomComplexityDistribution(width, height, 1000000);
+//		double[] percent = distributionAsPercent(a);
+//		double[] complexityAlphas = BitMap.complexityAlpha(width, height);
+//		for (int i = 0; i < complexityAlphas.length; i++) {
+//			if(percent[i] != 0) {
+//				System.out.println(String.format("Alpha Complexity Value: %f  Percent: %f %%", complexityAlphas[i], percent[i]));
+//			}
+//		}
 		
-		//System.out.println("End Of main");
+		// Make random replacement segments when above thresh hold
+		test.saveBMPWithRandomSegmentsAboveAlphaComplexity("Test", ".bmp", width, height, minComplexity);
+		//test.saveBitMapImages("CheckingWhichBitmap", ".bmp");
+		System.out.println("End Of main");
 	}
 }
