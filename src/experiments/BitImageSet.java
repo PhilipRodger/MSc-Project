@@ -248,7 +248,7 @@ public class BitImageSet {
 //			}
 //		}
 		
-		// Make random replacement segments when above thresh hold
+		// Make random replacement segments when above threshold
 		test.saveBMPWithRandomSegmentsAboveAlphaComplexity("Test", ".bmp", width, height, minComplexity);
 		//test.saveBitMapImages("CheckingWhichBitmap", ".bmp");
 		System.out.println("End Of main");
