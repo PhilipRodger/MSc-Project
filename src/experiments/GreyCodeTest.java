@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
-
+ 
 public class GreyCodeTest {
 	public static void main(String[] args) {
 		BufferedImage input = null;
