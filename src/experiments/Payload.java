@@ -11,11 +11,31 @@ public class Payload {
 	int segmentWidth;
 	int segmentHeight;
 	
-	long fileStartBit; // including this bit.
-	long fileEndBit;   // excluding this bit
-	ArrayList<Integer> ConjugatedSegments;
-	ArrayList<BitMap> segments;
+	boolean firstBlockConguigate = false;
+	boolean[] fileEndBit;   // excluding this bit
+	boolean[] conjugateMapStart;
+	boolean conjugateMapOriginBlockConguigate = false;
+	boolean[] conjugateMapEnd; // excluding
+	
+	ArrayList<Integer> conjugatedSegments;
+	ArrayList<BitMap> replacementSegments;
+	ArrayList<Coordinant> possibleMessage;
 	ArrayList<Byte> payload;
+	BitImageSet vessel;
+	
+	static final boolean greyEncoding = true;
+	
+	public Payload(String vesselPath, int segmentWidth, int segmentHeight, double alphaComplexity) {
+		vessel = BitImageSet.makeBitImageSet(vesselPath, greyEncoding);
+		this.segmentWidth = segmentWidth;
+		this.segmentHeight = segmentHeight;
+		possibleMessage = vessel.getFrameCorners(segmentWidth, segmentHeight, alphaComplexity);
+		
+	}
+	
+	public embedFile() {
+		
+	}
 	
 	private static ArrayList<Byte> getBytesFromFile(String path){
 		try (FileInputStream payload = new FileInputStream(path)){

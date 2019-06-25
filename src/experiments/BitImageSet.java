@@ -17,6 +17,7 @@ public class BitImageSet {
 	int height;
 	boolean greyEncoded = false;
 
+	public final static int MAX_COMPLEXITY = 1;
 	public BitImageSet(BufferedImage input, boolean convertToGreyEncoding) {
 		// Take note of metadata and flag.
 		greyEncoded = convertToGreyEncoding;
@@ -265,17 +266,39 @@ public class BitImageSet {
 			}
 		}
 	}
-	
-	public static void main(String[] args) {
+	public static BitImageSet makeBitImageSet(String path, boolean convertToGrey) {
 		BufferedImage input = null;
-
 		try {
-			input = ImageIO.read(new File("lena_color.bmp"));
+			input = ImageIO.read(new File(path));
 		} catch (IOException e) {
 			// TODO: handle exception
 		}
+		return new BitImageSet(input, convertToGrey);
+	}
+	public ArrayList<Coordinant> getFrameCorners(int segmentWidth, int segmentHeight, double alphaComplexityCutoff){
+		ArrayList<Coordinant> allBitMapFrameCorners = new ArrayList<>();
+		for (int i = 0; i < bitmaps.length; i++) {
+			for (int j = 0; j < bitmaps[i].length; j++) {
+				ArrayList<Coordinant> bitMapFrameCorners = bitmaps[i][j].getFrameCorners(segmentWidth, segmentHeight);
+				ArrayList<Coordinant> complexEnough = bitmaps[i][j].getCoordinantsWithinComplexityRange(segmentWidth, segmentHeight, bitMapFrameCorners, alphaComplexityCutoff, MAX_COMPLEXITY);
+				for (Coordinant coordinant : complexEnough) {
+					// Add info about bitmap it came from. 
+					coordinant.setChannel(Channel.channelMapping(i));
+					coordinant.setBitMap(j);
+					
+					//Then add to the list
+					allBitMapFrameCorners.add(coordinant);
+				}
+			}
+		}
+		
+		return allBitMapFrameCorners;
+	}
+	
+	public static void main(String[] args) {
+
 		Boolean convertToGreyEncoding = true;
-		BitImageSet test = new BitImageSet(input, convertToGreyEncoding);
+		BitImageSet test = BitImageSet.makeBitImageSet("lena_color.bmp", convertToGreyEncoding);
 		//test.saveBitMapImage("Testing", ".bmp", 1, 0);
 		//test.saveBitMapImages("Testing", ".bmp");
 		//test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");

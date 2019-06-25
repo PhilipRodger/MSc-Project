@@ -3,7 +3,16 @@ package experiments;
 public class Coordinant {
 	int x;
 	int y;
+	Channel channel;
+	int bitMap;
 	
+	public Coordinant(int x, int y, Channel channel, int bitMap) {
+		this.x = x;
+		this.y = y;
+		this.channel = channel;
+		this.bitMap = bitMap;
+	}
+
 	public Coordinant(int x, int y) {
 		this.x = x;
 		this.y = y;
@@ -13,6 +22,22 @@ public class Coordinant {
 		return x;
 	}
 	
+	public Channel getChannel() {
+		return channel;
+	}
+
+	public void setChannel(Channel channel) {
+		this.channel = channel;
+	}
+
+	public int getBitMap() {
+		return bitMap;
+	}
+
+	public void setBitMap(int bitMap) {
+		this.bitMap = bitMap;
+	}
+
 	public void setX(int x) {
 		this.x = x;
 	}

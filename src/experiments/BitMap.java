@@ -56,6 +56,7 @@ public class BitMap {
 		return candidatesUnchecked;
 	}
 	
+	
 	public int getComplexityOfSegment(Coordinant upperLeftHandCorner, int frameWidth, int frameHeight) {
 		// Define edges of the rectangle:
 		int minX = upperLeftHandCorner.getX();
