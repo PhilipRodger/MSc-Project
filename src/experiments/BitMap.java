@@ -94,6 +94,74 @@ public class BitMap {
 		}
 		return complexityCount;
 	}
+	
+	public int getDiagonalComplexityOfSegment(Coordinant upperLeftHandCorner, int frameWidth, int frameHeight) {
+		//int borderComplexity = getComplexityOfSegment(upperLeftHandCorner, frameWidth, frameHeight);
+		//double diagonalComplexityContribution = (1/Math.sqrt(2)); // possible complexity of a diagonal change
+		int complexity = 0;
+		int numberOfSlices = frameWidth + frameHeight - 1;
+		//System.out.println("Positive 45 degree");
+		// Positive 45 degree
+		int startX = 0;
+		int startY = 0;
+		for (int leftAndBottom = 0; leftAndBottom < numberOfSlices; leftAndBottom++) {
+
+			boolean first = getBit(startX + upperLeftHandCorner.getX(), startY + upperLeftHandCorner.getY());
+			
+			{
+				int x = startX;
+				int y = startY;
+				boolean walker = first;
+				while(x < frameWidth && x >= 0 && y >=0 && y < frameHeight) {
+					boolean compareTo = getBit(x + upperLeftHandCorner.getX(), y + upperLeftHandCorner.getY());
+					if(walker != compareTo) {
+						//System.out.println("Change: " + (x-1) + ", " + (y + 1) + " to "+  x + ", " + y);
+						walker = compareTo;
+						complexity++;
+					}
+					x++;
+					y--;
+				}
+			}
+			
+			startY++;
+			if(startY >= frameHeight) {
+				startX++;
+				startY--;
+			}
+		}
+		
+		//System.out.println("Negative 45 degree");
+		startX = 0;
+		startY = frameHeight - 1;
+		for (int leftAndTop = 0; leftAndTop < numberOfSlices; leftAndTop++) {
+
+			boolean first = getBit(startX + upperLeftHandCorner.getX(), startY + upperLeftHandCorner.getY());
+			{
+				int x = startX;
+				int y = startY;
+				boolean walker = first;
+				while(x < frameWidth && x >= 0 && y >=0 && y < frameHeight) {
+					boolean compareTo = getBit(x + upperLeftHandCorner.getX(), y + upperLeftHandCorner.getY());
+					if(walker != compareTo) {
+						//System.out.println("Change: " + (x-1) + ", " + (y + 1) + " to "+  x + ", " + y);
+						walker = compareTo;
+						complexity++;
+					}
+					x++;
+					y++;
+				}
+			}
+			
+			startY--;
+			if(startY < 0) {
+				startX++;
+				startY++;
+			}
+		}
+		
+		return complexity;
+	}
 		
 	public static int maxComplexity(int frameWidth, int frameHeight) {
 		int horizontalComplexity = frameHeight * (frameWidth - 1);
@@ -126,13 +194,18 @@ public class BitMap {
 		return getComplexityDistribution(width, height, candidates);
 	}
 	
-	public static int[] getRandomComplexityDistribution(int width, int height, int itterations) {
+	public static int[] getRandomComplexityDistribution(int width, int height, int itterations, int timeOutSeconds) {
 		int maxComplexity = maxComplexity(width, height);
 		int[] distribution = new int[maxComplexity + 1];
-		for (int i = 0; i < itterations; i++) {
+		int timeInMilli = timeOutSeconds * 1000;
+		long startTime = System.currentTimeMillis();
+		boolean timedout = false;
+		for (int i = 0; i < itterations && !timedout; i++) {
 			BitMap random = makeRandomMap(width, height);
 			int complexity = random.getComplexityOfSegment(new Coordinant(0, 0), width, height);
 			distribution[complexity]++;
+		    timedout = (System.currentTimeMillis() > (startTime + timeInMilli));
+
 		}
 		return distribution;
 	}
@@ -285,6 +358,109 @@ public class BitMap {
 			image[i] = toClone.image[i].clone();
 		}
 	}
+	public static int[] getComplexityDistrobutionEdgePlusDiagonal(int width, int height, int itterations) {
+		Coordinant upperLeft = new Coordinant(0,0);
+		double diagonalComplexityContribution = (1/Math.sqrt(2)); // possible complexity of a diagonal change
+
+		int[] distribution = new int[width*height*3];
+		for (int i = 0; i < itterations; i++) {
+			BitMap map =  makeRandomMap(width, height);
+			int diagonalComplex = (int) Math.round((map.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution));
+			int edgeComplex = map.getComplexityOfSegment(upperLeft, width, height);
+			int totalComplexity = edgeComplex + diagonalComplex;
+			distribution[totalComplexity]++;
+		}
+		
+		return distribution;
+	}
+	
+	public static void printComplexityComparison(int width, int height, int itterations) {
+		// Trying to find out diagonal complexity:
+				Coordinant upperLeft = new Coordinant(0,0);
+				double diagonalComplexityContribution = (1/Math.sqrt(2)); // possible complexity of a diagonal change
+				//double diagonalComplexityContribution = 1; // possible complexity of a diagonal change
+
+				// getting extremes of diagonal complexity
+				BitMap minDiagonal =  makeRandomMap(width, height);
+				int minD = (int) ( minDiagonal.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution);
+				BitMap maxDiagonal =  makeRandomMap(width, height);
+				int maxD = (int) ( maxDiagonal.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution);
+
+				// getting extremes of Normal Ege complexity
+				BitMap minEdge =  makeRandomMap(width, height);
+				int minE = minEdge.getComplexityOfSegment(upperLeft, width, height);
+				BitMap maxEdge =  makeRandomMap(width, height);
+				int maxE = maxEdge.getComplexityOfSegment(upperLeft, width, height);
+
+				// getting extremes of combined complexity
+				BitMap minTotal =  makeRandomMap(width, height);
+				int minT = minTotal.getComplexityOfSegment(upperLeft, width, height) +(int) ( minTotal.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution);
+				BitMap maxTotal =  makeRandomMap(width, height);
+				int maxT = maxTotal.getComplexityOfSegment(upperLeft, width, height) +  (int)( maxTotal.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution);
+
+				for (int i = 0; i < itterations; i++) {
+					BitMap map =  makeRandomMap(width, height);
+					int diagonalComplex = (int) Math.round((map.getDiagonalComplexityOfSegment(upperLeft, width, height) * diagonalComplexityContribution));
+					int edgeComplex = map.getComplexityOfSegment(upperLeft, width, height);
+					int totalComplexity = edgeComplex + diagonalComplex ;
+					
+					// New extreme check for diagonal
+					if (diagonalComplex > maxD) {
+						maxDiagonal = map;
+						maxD = diagonalComplex;
+					} else if (diagonalComplex < minD) {
+						minDiagonal = map;
+						minD = diagonalComplex;
+					}
+					
+					// New extreme check for edge
+					if (edgeComplex > maxE) {
+						maxEdge = map;
+						maxE = edgeComplex;
+					} else if (edgeComplex < minE) {
+						minEdge = map;
+						minE = edgeComplex;
+					}
+					
+					// New extreme check for total
+					if (totalComplexity > maxT) {
+						maxTotal = map;
+						maxT = totalComplexity;
+					} else if (totalComplexity < minT) {
+						minTotal = map;
+						minT = totalComplexity;
+					} 
+				}
+				System.out.println("Minimum Diagonal Complexity: " + minD);
+				System.out.println(minDiagonal);
+				
+				System.out.println("Maximum Diagonal Complexity: " + maxD);
+				System.out.println(maxDiagonal);
+				
+				System.out.println("Minimum Edge Complexity: " + minE);
+				System.out.println(minEdge);
+				
+				System.out.println("Maximum Edge Complexity: " + maxE);
+				System.out.println(maxEdge);
+				
+				System.out.println("Minimum Total Complexity: " + minT);
+				System.out.println(minTotal);
+				
+				System.out.println("Maximum Total Complexity: " + maxT);
+				System.out.println(maxTotal);
+	}
+	
+	public static void printRandomDistribution(int segmentWidth, int segmentHeight) {
+		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000, 60);
+		double[] percent = BitImageSet.distributionAsPercent(a);
+		double[] complexityAlphas = BitMap.complexityAlpha(segmentWidth, segmentHeight);
+		for (int i = 0; i < complexityAlphas.length; i++) {
+			if (percent[i] != 0) {
+				System.out.println(complexityAlphas[i] + "\t" + percent[i]);
+			}
+			
+		}
+	}
 	
 	public static void main(String[] args) {
 
@@ -313,10 +489,35 @@ public class BitMap {
 //		System.out.println("Complexity = " + xOrXor.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
 		
 		//Testing effect on distribution when complexity cut off used. 
-		System.out.println(Arrays.toString(getRandomComplexityDistribution(8, 8, 10000000)));
-		System.out.println(Arrays.toString(getComplexityDistributionAboveAlphaComplexity(3024, 8, 10000000, 0.300)));
 
 		
+		//printRandomDistribution(2, 2);
 
+
+//		
+//		BitMap bitMap = makeRandomMap(width, height);
+//		System.out.println(bitMap);
+//		System.out.println("Diagonal Complexity: " + bitMap.getDiagonalComplexityOfSegment(new Coordinant(0, 0), width, height));
+//		System.out.println("Alpha Complexity: " + bitMap.getComplexityOfSegment(new Coordinant(0, 0), width, height));
+
+		//Compare evaluation of complexity using diagonal complexity, edge complexity and a combined value 
+		//printComplexityComparison(8, 8, 200000);
+		int width = 8;
+		int height = 8;
+		int itterations = 100000;
+		int[] combined = getComplexityDistrobutionEdgePlusDiagonal(width, height, itterations);
+		double[] combinedPercent = BitImageSet.distributionAsPercent(combined);
+		for (int i = 0; i < combinedPercent.length; i++) {
+			if (combinedPercent[i] > .2) {
+				System.out.println(i + ": " + combinedPercent[i] + "%");
+			}
+		}
+		int[] edgeDistribution = getRandomComplexityDistribution(width, height, itterations, 10000);
+		double[] edgePercent = BitImageSet.distributionAsPercent(edgeDistribution);
+		for (int i = 0; i < edgePercent.length; i++) {
+			if (edgePercent[i] > .2) {
+				System.out.println(i + ": " + edgePercent[i] + "%");
+			}
+		}
 	}
 }

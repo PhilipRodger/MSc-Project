@@ -174,11 +174,13 @@ public class BitImageSet {
 		System.out.println(countReplacement + " x " + segmentHeight + "X" + segmentWidth + "replacements = " + bitsReplaced + "bits added or " + bytes + "bytes");
 		
 		
-		String path = baseName + encoding + "Segment" + segmentWidth + "X" + segmentHeight + "Min"+ minimumComplexity +"Complexity" + bytes + "BytesAdded" + fileExtension;
+		String path = baseName + encoding + "Min"+ minimumComplexity +"Complexity" + segmentWidth + "X" + segmentHeight + "Segment" + bytes + "BytesAdded" + fileExtension;
 		convertToBMPFile(path);
 	}
 	
 	public double estimateTheoreticalMapProportion(int segmentWidth, int segmentHeight, double minimumComplexity) {
+		System.out.println("//////////////////////////////////////////////////////////////////");
+		System.out.println(segmentHeight + "x" + segmentWidth + " alpha complexity cutoff of " + minimumComplexity + " in a "+ width + "x" + height + "image.\n");
 		BitImageSet copy = new BitImageSet(this);
 		
 		// Calculate total number of substitutions.
@@ -201,7 +203,7 @@ public class BitImageSet {
 		System.out.println("Minimum number of bits to represent each replacement:" + numberOfBitsRequired);
 		
 		// Estimate proportion of segments that require conjugation mapping. 
-		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000);
+		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000, 60);
 		double[] percent = distributionAsPercent(a);
 		double[] complexityAlphas = BitMap.complexityAlpha(segmentWidth, segmentHeight);
 		double percentageNeedingConjugation = 0.0;
@@ -256,11 +258,19 @@ public class BitImageSet {
 		return percentage;
 	}
 	
+	public void saveBitMapReplacementImages(String baseName, String fileExtension, int segmentWidth, int segmentHeight, double minComplexity, double maxComplexity) {
+		for (int i = 0; i < RGBPixel.NUMBER_OF_BITS_PER_CHANNEL; i++) {
+			for (int j = 0; j < RGBPixel.NUMBER_OF_CHANNELS; j++) {
+				saveBitMapImageHighlightComplexity(baseName, fileExtension, Channel.channelMapping(j), i, segmentWidth, segmentHeight, minComplexity, maxComplexity);	
+			}
+		}
+	}
+	
 	public static void main(String[] args) {
 		BufferedImage input = null;
 
 		try {
-			input = ImageIO.read(new File("sample.bmp"));
+			input = ImageIO.read(new File("lena_color.bmp"));
 		} catch (IOException e) {
 			// TODO: handle exception
 		}
@@ -271,23 +281,16 @@ public class BitImageSet {
 		//test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");
 		
 //		// frames
-		int width = 2;
-		int height = 2;
-		//Channel channel = Channel.RED;
+		int width = 8;
+		int height = 8;
+		Channel channel = Channel.RED;
 		//int channelBit = 0;
-		double minComplexity = 0.35;
+		double minComplexity = 0.3;
 		
-		//double maxComplexity = 0;
+		double maxComplexity = 1;
 		
 		// Make a visual version of replacement in bitmap.
-		//test.saveBitMapImageHighlightComplexity("test", ".bmp", channel, channelBit, width, height, minComplexity, maxComplexity);
-		
-//		for (int i = 1; i < 65; i++) {
-//			//Make a visual representation of what will be replaced 
-//			for (int j = 0; j < 1; j++) {
-//				test.saveBitMapImageHighlightComplexity("test", ".bmp", channel, j, i, i, minComplexity, maxComplexity);
-//			}	
-//		}
+		//test.saveBitMapReplacementImages("BitMap", ".bmp", 2, 2, minComplexity, maxComplexity);
 		
 
 //		Complexity distribution of one bitmap
@@ -333,7 +336,16 @@ public class BitImageSet {
 //			}
 //		}
 		
-		test.estimateTheoreticalMapProportion(width, height, minComplexity);
+		
+		// Print out estimate size of Conjugate map required: 
+		for (int i = 1; i <= 512; i= i*2) {
+			for (int j = 1; j < 11; j++) {
+				BitImageSet copy = new BitImageSet(test);
+				double minComplex = ((j*1.0)/10);
+				copy.estimateTheoreticalMapProportion(i, i, minComplex);
+
+			}
+		}
 		
 		System.out.println("End Of main");
 	}
