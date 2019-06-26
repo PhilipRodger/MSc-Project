@@ -295,6 +295,11 @@ public class BitImageSet {
 		return allBitMapFrameCorners;
 	}
 	
+	//TODO
+	//public writeBit(Co) {
+		
+	//}
+	
 	public static void main(String[] args) {
 
 		Boolean convertToGreyEncoding = true;

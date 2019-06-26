@@ -520,5 +520,6 @@ public class BitMap {
 				System.out.println(i + ": " + edgePercent[i] + "%");
 			}
 		}
+		printComplexityComparison(8, 8, 10000);
 	}
 }
