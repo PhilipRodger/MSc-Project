@@ -238,7 +238,7 @@ public class BitImageSet {
 
 	}
 	
-	private void saveImage(BufferedImage image, String path) {
+	public static void saveImage(BufferedImage image, String path) {
 		try {
 			ImageIO.write(image, "bmp", new File(path));
 		} catch (IOException e) {
