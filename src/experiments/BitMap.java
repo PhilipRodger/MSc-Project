@@ -125,6 +125,13 @@ public class BitMap {
 		return complexityCount;
 	}
 
+	public double getAdjustedComplexityOfSegment(Coordinant upperLeftHandCorner, int frameWidth, int frameHeight) {
+		double alpha = getAlphaComplexity(getComplexityOfSegment(upperLeftHandCorner, frameWidth, frameHeight),
+				maxComplexity(frameWidth, frameHeight));
+		alpha *= 2;
+		return 1 - Math.abs(1 - alpha);
+	}
+
 	public int getDiagonalComplexityOfSegment(Coordinant upperLeftHandCorner, int frameWidth, int frameHeight) {
 		// int borderComplexity = getComplexityOfSegment(upperLeftHandCorner,
 		// frameWidth, frameHeight);
@@ -418,12 +425,13 @@ public class BitMap {
 
 		return distribution;
 	}
-	
+
 	public static void saveScatterPlotOfComplexities(int width, int height, int itterations, int scatterplotDimention) {
-		BufferedImage scatterPlot = new BufferedImage(scatterplotDimention, scatterplotDimention, BufferedImage.TYPE_INT_RGB);
+		BufferedImage scatterPlot = new BufferedImage(scatterplotDimention, scatterplotDimention,
+				BufferedImage.TYPE_INT_RGB);
 		// Trying to find out diagonal complexity:
 		Coordinant upperLeft = new Coordinant(0, 0);
-		
+
 		int scatterplotDimentionIndex = scatterplotDimention - 1;
 		for (int x = 0; x < scatterplotDimention; x++) {
 			for (int y = 0; y < scatterplotDimention; y++) {
@@ -432,42 +440,6 @@ public class BitMap {
 		}
 		int maxPossibleDiagonalComplexity = getMaxDiagonalComplexity(width, height);
 		int maxPossibleEdgeComplexity = maxComplexity(width, height);
-		
-		for (int i = 0; i < itterations; i++) {
-			BitMap map = makeRandomMap(width, height);
-			double diagonalComplex = (((double) map.getDiagonalComplexityOfSegment(upperLeft, width, height)) / maxPossibleDiagonalComplexity);
-			double edgeComplex = ((double) map.getComplexityOfSegment(upperLeft, width, height)) / maxPossibleEdgeComplexity;
-			scatterPlot.setRGB((int)(edgeComplex * scatterplotDimentionIndex), (int) (diagonalComplex * scatterplotDimentionIndex), Color.BLACK.getRGB());
-			}
-		BitImageSet.saveImage(scatterPlot, "XIsEdgeYDiagonalComplexity.bmp");
-	}
-
-	public static void saveComplexityComparison(int width, int height, int itterations, int outPutScale) {
-		
-		// Trying to find out diagonal complexity:
-		Coordinant upperLeft = new Coordinant(0, 0);
-		int maxPossibleDiagonalComplexity = getMaxDiagonalComplexity(width, height);
-		int maxPossibleEdgeComplexity = maxComplexity(width, height);
-
-		// getting extremes of diagonal complexity
-		BitMap dumby = makeRandomMap(width, height);
-		BitMap minDiagonal = dumby;
-		double minD = (((double) minDiagonal.getDiagonalComplexityOfSegment(upperLeft, width, height))
-				/ maxPossibleDiagonalComplexity);
-		BitMap maxDiagonal = dumby;
-		double maxD = minD;
-
-		// getting extremes of Normal Ege complexity
-		BitMap minEdge = dumby;
-		double minE = ((double) minEdge.getComplexityOfSegment(upperLeft, width, height)) / maxPossibleEdgeComplexity;
-		BitMap maxEdge = dumby;
-		double maxE = minE;
-
-		// getting extremes of combined complexity
-		BitMap minTotal = dumby;
-		double minT = (minD + minE) / 2;
-		BitMap maxTotal = dumby;
-		double maxT = minT;
 
 		for (int i = 0; i < itterations; i++) {
 			BitMap map = makeRandomMap(width, height);
@@ -475,7 +447,45 @@ public class BitMap {
 					/ maxPossibleDiagonalComplexity);
 			double edgeComplex = ((double) map.getComplexityOfSegment(upperLeft, width, height))
 					/ maxPossibleEdgeComplexity;
-			double totalComplexity = (edgeComplex + diagonalComplex) / 2;
+			scatterPlot.setRGB((int) (edgeComplex * scatterplotDimentionIndex),
+					(int) (diagonalComplex * scatterplotDimentionIndex), Color.BLACK.getRGB());
+		}
+		BitImageSet.saveImage(scatterPlot, "XIsEdgeYDiagonalComplexity.bmp");
+	}
+
+	public static void saveComplexityComparison(int width, int height, int itterations, int outPutScale) {
+
+		// Trying to find out diagonal complexity:
+		Coordinant upperLeft = new Coordinant(0, 0);
+		int maxPossibleDiagonalComplexity = getMaxDiagonalComplexity(width, height);
+		int maxPossibleEdgeComplexity = maxComplexity(width, height);
+		int maxPossibleComplexityTotal = maxPossibleDiagonalComplexity + maxPossibleEdgeComplexity;
+
+		// getting starting values of complexity
+		BitMap dumby = makeRandomMap(width, height);
+		int dumbyDiagonalComplexity = dumby.getDiagonalComplexityOfSegment(upperLeft, width, height);
+		int dumbyEdgeComplexity = dumby.getComplexityOfSegment(upperLeft, width, height);
+
+		BitMap minDiagonal, maxDiagonal, minEdge, maxEdge, minTotal, maxTotal;
+		minDiagonal = maxDiagonal = minEdge = maxEdge = minTotal = maxTotal = dumby;
+		double minD = (((double) dumbyDiagonalComplexity) / maxPossibleDiagonalComplexity);
+		double maxD = minD;
+		// getting extremes of Normal Edge complexity
+		double minE = ((double) dumbyEdgeComplexity) / maxPossibleEdgeComplexity;
+		double maxE = minE;
+
+		// getting extremes of combined complexity
+		double minT = ((double) dumbyDiagonalComplexity + dumbyEdgeComplexity) / maxPossibleComplexityTotal;
+		double maxT = minT;
+
+		for (int i = 0; i < itterations; i++) {
+			BitMap map = makeRandomMap(width, height);
+			int mapDiagonalComplexity = map.getDiagonalComplexityOfSegment(upperLeft, width, height);
+			int mapEdgeComplexity = map.getComplexityOfSegment(upperLeft, width, height);
+
+			double diagonalComplex = ((double) mapDiagonalComplexity) / maxPossibleDiagonalComplexity;
+			double edgeComplex = ((double) mapEdgeComplexity) / maxPossibleEdgeComplexity;
+			double totalComplexity = ((double) mapDiagonalComplexity + mapEdgeComplexity) / maxPossibleComplexityTotal;
 
 			// New extreme check for diagonal
 			if (diagonalComplex > maxD) {
@@ -602,8 +612,14 @@ public class BitMap {
 //				System.out.println(i + ": " + edgePercent[i] + "%");
 //			}
 //		}
-		saveComplexityComparison(8, 8, Integer.MAX_VALUE, 50);
-		
-		//saveScatterPlotOfComplexities(8, 8, 500,100);
+//		for (int i = 0; i < 50; i++) {
+//			saveComplexityComparison(8, 8, 10000000, 50);	
+//		}
+		// saveScatterPlotOfComplexities(8, 8, 500,100);
+
+		BitMap map = makeRandomMap(8, 8);
+		System.out.println(map);
+		System.out.println(map.getAdjustedComplexityOfSegment(new Coordinant(0, 0), 8, 8));
+		BitImageSet.saveImage(map.getBitMapImage(Color.BLACK.getRGB(), 50), "RandomMap.bmp");
 	}
 }

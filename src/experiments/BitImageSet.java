@@ -38,7 +38,7 @@ public class BitImageSet {
 			for (int x = 0; x < inputRaster.getWidth(); x++) {
 				// Iterate over all pixels in the input image.
 
-				RGBPixel pixel = new RGBPixel(inputRaster.getPixel(x, y, new int[3]));
+				RGBPixel pixel = new RGBPixel(inputRaster.getPixel(x, y, new int[4]));
 				if (greyEncoded) {
 					// Convert to grey code
 					pixel = pixel.makeGrayCodePixel();
@@ -303,7 +303,7 @@ public class BitImageSet {
 	public static void main(String[] args) {
 
 		Boolean convertToGreyEncoding = true;
-		BitImageSet test = BitImageSet.makeBitImageSet("lena_color.bmp", convertToGreyEncoding);
+		BitImageSet test = BitImageSet.makeBitImageSet("lion.PNG", convertToGreyEncoding);
 		//test.saveBitMapImage("Testing", ".bmp", 1, 0);
 		//test.saveBitMapImages("Testing", ".bmp");
 		//test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");
@@ -366,15 +366,18 @@ public class BitImageSet {
 		
 		
 		// Print out estimate size of Conjugate map required: 
-		for (int i = 1; i <= 512; i= i*2) {
-			for (int j = 1; j < 11; j++) {
-				BitImageSet copy = new BitImageSet(test);
-				double minComplex = ((j*1.0)/10);
-				copy.estimateTheoreticalMapProportion(i, i, minComplex);
-
-			}
-		}
+//		for (int i = 1; i <= 512; i= i*2) {
+//			for (int j = 1; j < 11; j++) {
+//				BitImageSet copy = new BitImageSet(test);
+//				double minComplex = ((j*1.0)/10);
+//				copy.estimateTheoreticalMapProportion(i, i, minComplex);
+//
+//			}
+//		}
 		
+		//test.saveBitMapImages("", ".bmp");
+		//test.saveBitMapReplacementImages("", ".bmp", 8, 8, 0.3, 1);
+		test.saveBMPWithRandomSegmentsAboveAlphaComplexity("", ".bmp", 8, 8, 0.3);
 		System.out.println("End Of main");
 	}
 }
