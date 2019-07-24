@@ -235,20 +235,31 @@ public class BitMap {
 		return getComplexityDistribution(width, height, candidates);
 	}
 
-	public static int[] getRandomComplexityDistribution(int width, int height, int itterations, int timeOutSeconds) {
+	public static int[] getRandomComplexityDistribution(int width, int height, int itterations, int timeOutSeconds, double minimumCuttoff) {
 		int maxComplexity = maxComplexity(width, height);
 		int[] distribution = new int[maxComplexity + 1];
 		int timeInMilli = timeOutSeconds * 1000;
 		long startTime = System.currentTimeMillis();
 		boolean timedout = false;
 		for (int i = 0; i < itterations && !timedout; i++) {
-			BitMap random = makeRandomMap(width, height);
+			BitMap random = makeRandomWithMinimumComplexity(width, height, minimumCuttoff);
 			int complexity = random.getComplexityOfSegment(new Coordinant(0, 0), width, height);
 			distribution[complexity]++;
 			timedout = (System.currentTimeMillis() > (startTime + timeInMilli));
 
 		}
 		return distribution;
+	}
+	
+	public static void printRandomDistribution(int width, int height, int itterations, double complexityCutoff) {
+		int[] complexities = getRandomComplexityDistribution(width, height, itterations, 999999, complexityCutoff);
+		double[] percent = BitImageSet.distributionAsPercent(complexities);
+
+		double[] complexityAlphas = BitMap.complexityAlpha(width, height);
+		System.out.println("Alpha Complexity	Frequency (%)");
+		for (int i = 0; i < complexityAlphas.length; i++) {
+				System.out.println(String.format("%f	%f", complexityAlphas[i], percent[i]));
+		}
 	}
 
 	public static int[] getComplexityDistributionAboveAlphaComplexity(int width, int height, int itterations,
@@ -302,7 +313,7 @@ public class BitMap {
 
 	public static double[] complexityAlpha(int width, int height) {
 		int maxPossibleComplexity = maxComplexity(width, height);
-		double[] alphaValuesforDistribution = new double[maxPossibleComplexity];
+		double[] alphaValuesforDistribution = new double[maxPossibleComplexity + 1];
 		for (int i = 0; i < alphaValuesforDistribution.length; i++) {
 			alphaValuesforDistribution[i] = (i * 1.0) / maxPossibleComplexity;
 		}
@@ -408,6 +419,11 @@ public class BitMap {
 			image[i] = toClone.image[i].clone();
 		}
 	}
+	
+	public BitMap getConjugate() {
+		BitMap mask = makeCheckerBoardMap(width, height);
+		return  xOr(this, mask);
+	}
 
 	public static int[] getComplexityDistrobutionEdgePlusDiagonal(int width, int height, int itterations) {
 		Coordinant upperLeft = new Coordinant(0, 0);
@@ -451,6 +467,57 @@ public class BitMap {
 					(int) (diagonalComplex * scatterplotDimentionIndex), Color.BLACK.getRGB());
 		}
 		BitImageSet.saveImage(scatterPlot, "XIsEdgeYDiagonalComplexity.bmp");
+	}
+	
+	public static void saveSmileConjugateExample() {
+		// Demonstration of conjugation
+		
+		//make smiley face bitmap
+				BitMap bitMap = new BitMap(8, 8);
+				bitMap.setBit(1, 1);
+				bitMap.setBit(2, 1);
+				bitMap.setBit(1, 2);
+				bitMap.setBit(2, 2);
+				
+				bitMap.setBit(6, 1);
+				bitMap.setBit(5, 1);
+				bitMap.setBit(6, 2);
+				bitMap.setBit(5, 2);
+				
+				bitMap.setBit(1, 4);
+				bitMap.setBit(1, 5);
+				
+				bitMap.setBit(2, 5);
+				bitMap.setBit(2, 6);
+				//bitMap.setBit(3, 5);
+				bitMap.setBit(3, 6);
+				//bitMap.setBit(4, 5);
+				bitMap.setBit(4, 6);
+				bitMap.setBit(5, 5);
+				bitMap.setBit(5, 6);
+				bitMap.setBit(6, 4);
+				bitMap.setBit(6, 5);
+
+				System.out.println(bitMap);
+				System.out.println("Complexity = " + bitMap.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
+				BitImageSet.saveImage(bitMap.getBitMapImage(Color.BLACK.getRGB(), 50), "originalSmile"+"Complexity" + bitMap.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "Of" + maxComplexity(8, 8)+".bmp");
+				
+				BitMap checkerBoard = makeCheckerBoardMap(8, 8);
+				System.out.println(checkerBoard);
+				System.out.println("Complexity = " + checkerBoard.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
+				BitImageSet.saveImage(checkerBoard.getBitMapImage(Color.BLACK.getRGB(), 50), "checkerBoard"+"Complexity" + checkerBoard.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "Of"+ maxComplexity(8, 8)+".bmp");
+
+				
+				BitMap xOr = xOr(bitMap, checkerBoard);
+				System.out.println(xOr);
+				System.out.println("Complexity = " + xOr.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "-" + maxComplexity(8, 8));
+				BitImageSet.saveImage(xOr.getBitMapImage(Color.BLACK.getRGB(), 50), "xOrSmile"+"Complexity" + xOr.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "Of"+ maxComplexity(8, 8)+".bmp");
+
+				
+				BitMap xOrXor = xOr(xOr, checkerBoard);
+				System.out.println(xOrXor);
+				System.out.println("Complexity = " + xOrXor.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
+				BitImageSet.saveImage(xOrXor.getBitMapImage(Color.BLACK.getRGB(), 50), "xOrXOrSmile"+"Complexity" + xOrXor.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "Of" + maxComplexity(8, 8)+".bmp");
 	}
 
 	public static void saveComplexityComparison(int width, int height, int itterations, int outPutScale) {
@@ -546,7 +613,7 @@ public class BitMap {
 	}
 
 	public static void printRandomDistribution(int segmentWidth, int segmentHeight) {
-		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000, 60);
+		int[] a = BitMap.getRandomComplexityDistribution(segmentWidth, segmentHeight, 1000000, 60, 2);
 		double[] percent = BitImageSet.distributionAsPercent(a);
 		double[] complexityAlphas = BitMap.complexityAlpha(segmentWidth, segmentHeight);
 		for (int i = 0; i < complexityAlphas.length; i++) {
@@ -564,23 +631,8 @@ public class BitMap {
 		// System.out.println(Arrays.toString(bitMap.getBitMapCompexityDistribution(2,
 		// 2)));
 
-		// Demonstration of conjugation
-//		BitMap bitMap = new BitMap(8, 8);
-//		bitMap.setBit(1, 1);
-//		System.out.println(bitMap);
-//		System.out.println("Complexity = " + bitMap.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
-//		
-//		BitMap checkerBoard = makeCheckerBoardMap(8, 8);
-//		System.out.println(checkerBoard);
-//		System.out.println("Complexity = " + checkerBoard.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
-//		
-//		BitMap xOr = xOr(bitMap, checkerBoard);
-//		System.out.println(xOr);
-//		System.out.println("Complexity = " + xOr.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
-//		
-//		BitMap xOrXor = xOr(xOr, checkerBoard);
-//		System.out.println(xOrXor);
-//		System.out.println("Complexity = " + xOrXor.getComplexityOfSegment(new Coordinant(0, 0), 8, 8) + "/" + maxComplexity(8, 8));
+		saveSmileConjugateExample();
+
 
 		// Testing effect on distribution when complexity cut off used.
 
@@ -618,8 +670,9 @@ public class BitMap {
 		// saveScatterPlotOfComplexities(8, 8, 500,100);
 
 		BitMap map = makeRandomMap(8, 8);
+		map = makeCheckerBoardMap(4, 4);
 		System.out.println(map);
-		System.out.println(map.getAdjustedComplexityOfSegment(new Coordinant(0, 0), 8, 8));
-		BitImageSet.saveImage(map.getBitMapImage(Color.BLACK.getRGB(), 50), "RandomMap.bmp");
+		//System.out.println(map.getAdjustedComplexityOfSegment(new Coordinant(0, 0), 8, 8));
+		//BitImageSet.saveImage(map.getBitMapImage(Color.BLACK.getRGB(), 50), "checkerbord.bmp");
 	}
 }
