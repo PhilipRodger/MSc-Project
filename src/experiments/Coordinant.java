@@ -5,12 +5,14 @@ public class Coordinant {
 	int y;
 	Channel channel;
 	int bitMap;
+	BitMap origin;
 	
-	public Coordinant(int x, int y, Channel channel, int bitMap) {
+	public Coordinant(int x, int y, Channel channel, int bitMap, BitMap origin) {
 		this.x = x;
 		this.y = y;
 		this.channel = channel;
 		this.bitMap = bitMap;
+		this.origin = origin;
 	}
 
 	public Coordinant(int x, int y) {

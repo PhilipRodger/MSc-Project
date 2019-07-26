@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import javax.swing.text.Segment;
 
 public class Payload {
-	public static final int BITS_PER_BYTE = 8;
 	ArrayList<Byte> data;
 	ArrayList<BitMap> segments;
 	long nextBit;
@@ -28,6 +27,19 @@ public class Payload {
 	public Payload(String path) {
 		data = getBytesFromFile(path);
 	}
+	
+	public Payload(Vessel stegImage) {
+		unsegmentisePayload(stegImage);
+	}
+	
+	public int getNumberOfSegments() {
+		return segments.size();
+	}
+	
+	public ArrayList<BitMap> getSegments(){
+		return segments;
+	}
+
 
 	private static ArrayList<Byte> getBytesFromFile(String path) {
 		try (FileInputStream payload = new FileInputStream(path)) {
@@ -50,7 +62,7 @@ public class Payload {
 		return null;
 	}
 	
-	private void segmentisePayload(Vessel vessel, int segmentWidth, int segmentHeight, double complexityCutoff) {
+	public void segmentisePayload(Vessel vessel, int segmentWidth, int segmentHeight, double complexityCutoff) {
 		System.out.println(vessel.bitsToAddressBits);
 		// Initialise segment info
 		clearSegments();
@@ -70,15 +82,16 @@ public class Payload {
 		conjugateMapsBelowThreshold();
 	}
 	
-	public void unsegmentisePayload(Vessel vessel, int segmentWidth, int segmentHeight, double complexityCutoff) {
-		data = new ArrayList<>();
+	
+	
+	public void unsegmentisePayload(Vessel vessel) {
+		
 		// Initialise segment info
-		ArrayList<BitMap> segmentsCopy = segments;
-		clearSegments();
-		segments = segmentsCopy;
-		this.complexityCutoff = complexityCutoff;
-		this.segmentWidth = segmentWidth;
-		this.segmentHeight = segmentHeight;
+		data = new ArrayList<>();
+		segments = vessel.extractViableSegments();
+		complexityCutoff = vessel.getAlphaComplexity();
+		segmentWidth = vessel.getSegmentWidth();
+		segmentHeight = vessel.getSegmentHeight();
 		segmentCapacity = segmentHeight * segmentWidth;
 		nextInternalSegmentIndex = 0;
 		nextSegmentIndex = 0;
@@ -105,7 +118,7 @@ public class Payload {
 	}
 	
 	private void writeHeader(Vessel toWrite) {
-		long datalength = BITS_PER_BYTE * data.size();
+		long datalength = Byte.SIZE * data.size();
 		lastDataBit = datalength + toWrite.bitsToAddressBits;
 		makeNewSegment();
 
@@ -138,14 +151,14 @@ public class Payload {
 	}
 	
 	private void writeByte(byte toWrite){
-		for (int i = 0; i < BITS_PER_BYTE; i++) {
+		for (int i = 0; i < Byte.SIZE; i++) {
 			bitToSegmentWriter(getBitFromByte(toWrite, i));
 		}
 	}
 	
 	private void readByte() {
 		byte b = 0;
-		for (int i = 0; i < BITS_PER_BYTE; i++) {
+		for (int i = 0; i < Byte.SIZE; i++) {
 			if (readBit()) {
 				b += (1 << i);
 			}
@@ -227,7 +240,7 @@ public class Payload {
 		}
 	}
 
-	private void writeFile(String path) {
+	public void writeFile(String path) {
 		try (FileOutputStream extracted = new FileOutputStream(path)) {
 			for (Byte out : data) {
 				extracted.write(out);
@@ -261,10 +274,10 @@ public class Payload {
 		double alphaComplexity = 0.3;
 		
 		
-		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
+		Vessel vessel = new Vessel(vesselPath);
 		payload.segmentisePayload(vessel, segmentWidth, segmentHeight, alphaComplexity);
 		
-		payload.unsegmentisePayload(vessel, segmentWidth, segmentHeight, alphaComplexity);
+		payload.unsegmentisePayload(vessel);
 		System.out.println("End of Main");
 	}
 	

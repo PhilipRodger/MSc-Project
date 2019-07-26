@@ -84,7 +84,26 @@ public class BitMap {
 		}
 		return candidatesUnchecked;
 	}
+	
+	public BitMap extractSegment(Coordinant coordanant, int segmentWidth, int segmentHeight) {
+		BitMap segment = new BitMap(segmentWidth, segmentHeight);
+		
+		// Define edges of the rectangle:
+				int minX = coordanant.getX();
+				int maxX = minX + segmentWidth;
 
+				int minY = coordanant.getY();
+				int maxY = minY + segmentHeight;
+
+				for (int y = minY; y < maxY; y++) {
+					for (int x = minX; x < maxX; x++) {
+						if (getBit(x, y)) {
+							segment.setBit(x - minX, y - minY);
+						}
+					}
+				}
+		return segment;
+	}
 	public int getComplexityOfSegment(Coordinant upperLeftHandCorner, int frameWidth, int frameHeight) {
 		// Define edges of the rectangle:
 		int minX = upperLeftHandCorner.getX();
@@ -675,4 +694,6 @@ public class BitMap {
 		//System.out.println(map.getAdjustedComplexityOfSegment(new Coordinant(0, 0), 8, 8));
 		//BitImageSet.saveImage(map.getBitMapImage(Color.BLACK.getRGB(), 50), "checkerbord.bmp");
 	}
+
+
 }

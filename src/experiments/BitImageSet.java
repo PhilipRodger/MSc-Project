@@ -362,16 +362,20 @@ public class BitImageSet {
 
 		return allBitMapFrameCorners;
 	}
+	
+	public void replaceSegment(Coordinant toReplace, BitMap replacement) {
+		bitmaps[Channel.channelMapping(toReplace.getChannel())][toReplace.getBitMap()].replaceCoordinantWithBitmap(toReplace, replacement);
+	}
+	public BitMap extractSegment(Coordinant coordanant, int segmentWidth, int segmentHeight) {
+		return bitmaps[Channel.channelMapping(coordanant.getChannel())][coordanant.getBitMap()].extractSegment(coordanant, segmentWidth, segmentHeight);
+	}
 
-	// TODO
-	// public writeBit(Co) {
 
-	// }
 
 	public static void main(String[] args) {
 
 		Boolean convertToGreyEncoding = true;
-		BitImageSet test = BitImageSet.makeBitImageSet("lena_colour.bmp", convertToGreyEncoding);
+		BitImageSet test = BitImageSet.makeBitImageSet("lena_color.bmp", convertToGreyEncoding);
 		// test.saveBitMapImage("Testing", ".bmp", 1, 0);
 		// test.saveBitMapImages("Testing", ".bmp");
 		// test.convertToBMPFile("checkingReverseOnGrayConversion.bmp");
