@@ -104,10 +104,6 @@ public class Payload {
 		while (nextBit<=lastDataBit-1) {
 			readByte();
 		}
-		
-		for (Byte byte1 : data) {
-			System.out.println(byte1);
-		}
 	}
 
 

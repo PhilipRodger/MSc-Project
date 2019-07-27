@@ -1,12 +1,6 @@
 package experiments;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 
 public class Vessel {
 	int segmentWidth;
@@ -16,6 +10,9 @@ public class Vessel {
 	int bitsToAddressBits;
 	int bitsToAddressFrame;
 	int headerBitSize;
+	SupportedImageFormats sourceFormat;
+	
+	
 
 	ArrayList<Coordinant> viableSegments;
 	BitImageSet vessel;
@@ -54,11 +51,12 @@ public class Vessel {
 	}
 
 	public Vessel(String vesselPath) {
+		sourceFormat = SupportedImageFormats.getFormat(vesselPath);
 		vessel = BitImageSet.makeBitImageSet(vesselPath, greyEncoding);
 	}
 	
 	public Vessel(String vesselPath, int segmentWidth, int segmentHeight, double alphaComplexity) {
-		vessel = BitImageSet.makeBitImageSet(vesselPath, greyEncoding);
+		this(vesselPath);
 		setParameters(segmentWidth, segmentHeight, alphaComplexity);
 	}
 	
@@ -67,8 +65,8 @@ public class Vessel {
 		this.segmentHeight = segmentHeight;
 		this.alphaComplexity = alphaComplexity;
 		
-		viableSegments = vessel.getFrameCorners(segmentWidth, segmentWidth, alphaComplexity);
-		maxPossibleInfo = (viableSegments.size() * segmentWidth * segmentWidth);
+		viableSegments = vessel.getFrameCorners(segmentWidth, segmentHeight, alphaComplexity);
+		maxPossibleInfo = (viableSegments.size() * segmentWidth * segmentHeight);
 		bitsToAddressBits = numberOfBitsToRepresent(maxPossibleInfo);
 		bitsToAddressFrame = numberOfBitsToRepresent(viableSegments.size());
 		headerBitSize = bitsToAddressBits + 1; // End Address and current segment conjugation bit
@@ -90,8 +88,8 @@ public class Vessel {
 		}
 	}
 	
-	public void saveImage(String path) {
-		vessel.convertToBMPFile(path);
+	public void saveImage(String fileName) {
+		vessel.convertToImage(fileName, sourceFormat);
 	}
 	
 	@Override
@@ -128,21 +126,34 @@ public class Vessel {
 		}
 		return extractedSegments;
 	}
-
 	
-	public static void main(String[] args) {
-		String stegImagePath = "lena_colorSECRET.bmp";
-		String extractedPath = "EXTRACTED_SECRET.zip";
-
+	public static void attemptRoundTrip(String vesselPath, String payloadPath) {
 		int segmentWidth = 8;
 		int segmentHeight = 8;
 		double alphaComplexity = 0.3;
-		Vessel vessel = new Vessel(stegImagePath, segmentWidth, segmentHeight, alphaComplexity);
-		System.out.println(vessel.extractViableSegments().size());
-		Payload payload = vessel.extractPayload();
-		payload.writeFile(extractedPath);
+		
+		attemptRoundTrip(vesselPath, payloadPath, segmentWidth, segmentHeight, alphaComplexity);
+	}
+	
+	public static void attemptRoundTrip(String vesselPath, String payloadPath, 	int segmentWidth, int segmentHeight, double alphaComplexity ) {
+		String stegoPath = "stego" + vesselPath;
+		String extractedPath = "extracted" + payloadPath;
+	
+		
+		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
+		vessel.embedFile(payloadPath);
+		vessel.saveImage(stegoPath.replaceFirst("[.][^.]+$", ""));
+		vessel = null;
 		
 		
+		Vessel stegoImage = new Vessel(stegoPath, segmentWidth, segmentHeight, alphaComplexity);
+		Payload extract = stegoImage.extractPayload();
+		extract.writeFile(extractedPath);
+	}
+
+	
+	public static void main(String[] args) {
+		attemptRoundTrip("sample.bmp", "samplePayload.zip", 475, 437, 0.3);
 		System.out.println("End of Main");
 	}
 }

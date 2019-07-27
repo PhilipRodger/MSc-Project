@@ -20,6 +20,7 @@ public class BitImageSet {
 	public final static int MAX_COMPLEXITY = 1;
 
 	public BitImageSet(BufferedImage input, boolean convertToGreyEncoding) {
+
 		// Take note of metadata and flag.
 		greyEncoded = convertToGreyEncoding;
 		width = input.getWidth();
@@ -77,6 +78,8 @@ public class BitImageSet {
 		BufferedImage image = getBufferedImage();
 		saveImage(image, path);
 	}
+	
+	
 
 	public BufferedImage getBufferedImage() {
 		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -308,6 +311,16 @@ public class BitImageSet {
 			e.printStackTrace();
 		}
 	}
+	
+	public void convertToImage(String fileName, SupportedImageFormats sourceFormat) {
+		String filePath = fileName  + "." + SupportedImageFormats.getFileExtension(sourceFormat);
+		try {
+			ImageIO.write(this.getBufferedImage(), SupportedImageFormats.getFileExtension(sourceFormat), new File(filePath));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 
 	public static double[] distributionAsPercent(int[] original) {
 		int total = 0;
@@ -337,7 +350,7 @@ public class BitImageSet {
 		try {
 			input = ImageIO.read(new File(path));
 		} catch (IOException e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return new BitImageSet(input, convertToGrey);
 	}
