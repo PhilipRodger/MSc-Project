@@ -1,11 +1,11 @@
 package experiments;
 
 public class Coordinant {
-	int x;
-	int y;
-	Channel channel;
-	int bitMap;
-	BitMap origin;
+	private int x;
+	private int y;
+	private Channel channel;
+	private int bitMap;
+	private BitMap origin;
 	
 	public Coordinant(int x, int y, Channel channel, int bitMap, BitMap origin) {
 		this.x = x;

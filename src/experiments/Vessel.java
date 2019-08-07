@@ -3,20 +3,17 @@ package experiments;
 import java.util.ArrayList;
 
 public class Vessel {
-	int segmentWidth;
-	int segmentHeight;
-	double alphaComplexity;
-	long maxPossibleInfo;
-	int bitsToAddressBits;
-	int bitsToAddressFrame;
-	int headerBitSize;
-	SupportedImageFormats sourceFormat;
-	
-	
-
-	ArrayList<Coordinant> viableSegments;
-	BitImageSet vessel;
-	Payload payload;
+	private int segmentWidth;
+	private int segmentHeight;
+	private double alphaComplexity;
+	private long maxPossibleInfo;
+	private int bitsToAddressBits;
+	private int bitsToAddressFrame;
+	private int headerBitSize;
+	private SupportedImageFormats sourceFormat;
+	private ArrayList<Coordinant> viableSegments;
+	private BitImageSet vessel;
+	private Payload payload;
 
 	static final boolean greyEncoding = true;
 
@@ -24,22 +21,30 @@ public class Vessel {
 		return headerBitSize;
 	}
 	
-
 	public int getSegmentWidth() {
 		return segmentWidth;
 	}
-
 
 	public int getSegmentHeight() {
 		return segmentHeight;
 	}
 
-
 	public double getAlphaComplexity() {
 		return alphaComplexity;
 	}
-
-
+	
+	public int getWidth() {
+		return vessel.getWidth();
+	}
+	
+	public int getHeight() {
+		return vessel.getHeight();
+	}
+	
+	public long getBitsToAddressBits() {
+		return bitsToAddressBits;
+	}
+	
 	public static int numberOfBitsToRepresent(long numberOfPossibilities) {
 		int numberOfBitsRequired = 0;
 		long maxPosibilitiesRepresentable = 1;
@@ -66,7 +71,7 @@ public class Vessel {
 		this.alphaComplexity = alphaComplexity;
 		
 		viableSegments = vessel.getFrameCorners(segmentWidth, segmentHeight, alphaComplexity);
-		maxPossibleInfo = (viableSegments.size() * segmentWidth * segmentHeight);
+		maxPossibleInfo = (viableSegments.size() * (segmentWidth * segmentHeight - 1)); // 1 bit per segment for map
 		bitsToAddressBits = numberOfBitsToRepresent(maxPossibleInfo);
 		bitsToAddressFrame = numberOfBitsToRepresent(viableSegments.size());
 		headerBitSize = bitsToAddressBits + 1; // End Address and current segment conjugation bit
@@ -107,17 +112,18 @@ public class Vessel {
 		int segmentWidth = 8;
 		int segmentHeight = 8;
 		double alphaComplexity = 0.3;
+		
 		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
 		
 		vessel.embedFile(payloadPath);
 		vessel.saveImage(stegImagePath);
 	}
+	
 	public Payload extractPayload() {
 		ArrayList<BitMap> extractedSegments = extractViableSegments();
 		Payload payload = new Payload(this);
 		return payload;
 	}
-	
 	
 	public ArrayList<BitMap> extractViableSegments(){
 		ArrayList<BitMap> extractedSegments = new ArrayList<>();
@@ -151,9 +157,10 @@ public class Vessel {
 		extract.writeFile(extractedPath);
 	}
 
-	
 	public static void main(String[] args) {
-		attemptRoundTrip("sample.bmp", "samplePayload.zip", 475, 437, 0.3);
+		attemptRoundTrip("airbusemb.png", "Report.zip", 8, 8, 0.3);
 		System.out.println("End of Main");
 	}
+
+
 }

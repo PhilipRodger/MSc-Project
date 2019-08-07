@@ -8,9 +8,9 @@ import java.util.Iterator;
 import java.util.Random;
 
 public class BitMap {
-	int width;
-	int height;
-	boolean[][] image;
+	private int width;
+	private int height;
+	private boolean[][] image;
 
 	public BitMap(int width, int height) {
 		this.width = width;
@@ -358,7 +358,7 @@ public class BitMap {
 		int minX = toReplace.getX();
 		int maxX = toReplace.getX() + frameWidth;
 		int minY = toReplace.getY();
-		int maxY = toReplace.y + frameHeight;
+		int maxY = maxX + frameHeight;
 		for (int x = minX; x < maxX; x++) {
 			for (int y = minY; y < maxY; y++) {
 				image.setRGB(x, y, Color.BLACK.getRGB());

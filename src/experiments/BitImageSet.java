@@ -1,23 +1,27 @@
 package experiments;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Savepoint;
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import javax.imageio.ImageIO;
 
 public class BitImageSet {
-	BitMap[][] bitmaps;
-	int width;
-	int height;
-	boolean greyEncoded = false;
+	private BitMap[][] bitmaps;
+	private int width;
+	private int height;
+	private boolean greyEncoded = false;
 
 	public final static int MAX_COMPLEXITY = 1;
+
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
 
 	public BitImageSet(BufferedImage input, boolean convertToGreyEncoding) {
 
@@ -79,8 +83,6 @@ public class BitImageSet {
 		saveImage(image, path);
 	}
 	
-	
-
 	public BufferedImage getBufferedImage() {
 		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -321,7 +323,6 @@ public class BitImageSet {
 		}
 	}
 	
-
 	public static double[] distributionAsPercent(int[] original) {
 		int total = 0;
 		for (int i = 0; i < original.length; i++) {
@@ -379,11 +380,10 @@ public class BitImageSet {
 	public void replaceSegment(Coordinant toReplace, BitMap replacement) {
 		bitmaps[Channel.channelMapping(toReplace.getChannel())][toReplace.getBitMap()].replaceCoordinantWithBitmap(toReplace, replacement);
 	}
+
 	public BitMap extractSegment(Coordinant coordanant, int segmentWidth, int segmentHeight) {
 		return bitmaps[Channel.channelMapping(coordanant.getChannel())][coordanant.getBitMap()].extractSegment(coordanant, segmentWidth, segmentHeight);
 	}
-
-
 
 	public static void main(String[] args) {
 
