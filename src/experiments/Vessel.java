@@ -14,6 +14,7 @@ public class Vessel {
 	private ArrayList<Coordinant> viableSegments;
 	private BitImageSet vessel;
 	private Payload payload;
+	private String stegKey;
 
 	static final boolean greyEncoding = true;
 
@@ -45,6 +46,10 @@ public class Vessel {
 		return bitsToAddressBits;
 	}
 	
+	public void setStegKey(String stegKey) {
+		this.stegKey = stegKey;
+	}
+
 	public static int numberOfBitsToRepresent(long numberOfPossibilities) {
 		int numberOfBitsRequired = 0;
 		long maxPosibilitiesRepresentable = 1;
@@ -79,6 +84,12 @@ public class Vessel {
 
 	public void embedFile(String path) {	
 		payload = new Payload(path);
+		try {
+			payload.performEncryptDecrypt(stegKey, CipherMode.ENCRYPT);
+		} catch (Exception e) {
+			System.out.println("Unable to encrypt file, embedding file without encrypting");
+			e.printStackTrace();
+		}
 		payload.segmentisePayload(this, segmentWidth, segmentHeight, alphaComplexity);
 		
 		if (payload.getNumberOfSegments() > viableSegments.size()) {
@@ -122,6 +133,12 @@ public class Vessel {
 	public Payload extractPayload() {
 		ArrayList<BitMap> extractedSegments = extractViableSegments();
 		Payload payload = new Payload(this);
+		try {
+			payload.performEncryptDecrypt(stegKey, CipherMode.DECRYPT);
+		} catch (Exception e) {
+			System.out.println("Unable to decrypt file, extracting file without decrypting");
+			e.printStackTrace();
+		}
 		return payload;
 	}
 	
@@ -147,18 +164,20 @@ public class Vessel {
 	
 		
 		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
+		vessel.setStegKey("HowdyThere");
 		vessel.embedFile(payloadPath);
 		vessel.saveImage(stegoPath.replaceFirst("[.][^.]+$", ""));
 		vessel = null;
 		
 		
 		Vessel stegoImage = new Vessel(stegoPath, segmentWidth, segmentHeight, alphaComplexity);
+		stegoImage.setStegKey("HowdyThere");
 		Payload extract = stegoImage.extractPayload();
 		extract.writeFile(extractedPath);
 	}
 
 	public static void main(String[] args) {
-		attemptRoundTrip("airbusemb.png", "Report.zip", 8, 8, 0.3);
+		attemptRoundTrip("lena_color.bmp", "SamplePayload.zip", 8, 8, 0.3);
 		System.out.println("End of Main");
 	}
 

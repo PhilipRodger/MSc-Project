@@ -5,6 +5,7 @@ import java.awt.Color;
 public class RGBPixel {
 	public final static int NUMBER_OF_CHANNELS = 3;
 	public final static int NUMBER_OF_BITS_PER_CHANNEL = 8;
+	public final static int MAX_POSSIBLE_PIXEL_VALUE = (int) Math.pow(2, NUMBER_OF_BITS_PER_CHANNEL) - 1;
 	private static final int pureRed = Color.RED.getRGB();
 	private static final int pureGreen = Color.GREEN.getRGB();
 	private static final int pureBlue = Color.BLUE.getRGB();

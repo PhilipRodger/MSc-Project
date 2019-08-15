@@ -4,7 +4,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+
+import com.sun.xml.internal.bind.v2.model.util.ArrayInfoUtil;
 
 public class Payload {
 	private ArrayList<Byte> data;
@@ -96,6 +104,7 @@ public class Payload {
 			readByte();
 		}
 	}
+
 	private void clearSegments() {
 		segments = new ArrayList<>();
 		nextBitNeedsNewSegment = true;
@@ -244,9 +253,55 @@ public class Payload {
 			}
 		}
 	}
+	
+	
+	public void performEncryptDecrypt(String stegKey, CipherMode mode) throws Exception {
+		// Get Cipher initialised on Steganographic Key
+		SecretKeySpec key = getKey(stegKey);
+        Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        
+        // Set Cipher for encryption or decryption
+        switch (mode) {
+		case ENCRYPT:
+	        cipher.init(Cipher.ENCRYPT_MODE, key);
+	        break;
+		case DECRYPT:
+	        cipher.init(Cipher.DECRYPT_MODE, key);
+	        break;
+		default:
+			throw new IllegalArgumentException("Cipher mode not defined.");
+			}
+        
+        // Convert Payload to Primative Array 
+        byte[] primative = new byte[data.size()];
+        for (int i = 0; i < primative.length; i++) {
+			primative[i] = data.get((int) i);
+		}
+        
+        // Perform cipher  
+        byte[] encrypted = cipher.doFinal(primative);
+        
+        // Clear old payload and convert array to list
+		data = new ArrayList<>();
+         for (int i = 0; i < encrypted.length; i++) {
+			data.add(encrypted[i]);
+         }
+	}
+
+	private SecretKeySpec getKey(String stegKey) throws Exception {
+		if (stegKey == null) {
+			stegKey = "DefaultBCNFStegKey";
+		}
+		byte[] digest;
+		MessageDigest digester = MessageDigest.getInstance("SHA-256");
+		digest = digester.digest(stegKey.getBytes("UTF-8"));
+		return new SecretKeySpec(digest, "AES");
+
+	}
 
 	public static void main(String[] args) {
 		Payload payload = new Payload("SamplePayload.zip");
+		//payload.encryptPayload("Hi");
 		String vesselPath = "lena_color.bmp";
 		int segmentWidth = 8;
 		int segmentHeight = 8;
