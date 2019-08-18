@@ -21,8 +21,26 @@ public class Statistics {
 		WritableRaster inputRaster = input.getRaster();
 		WritableRaster modifiedRaster = modified.getRaster();
 		
-		long squaredDiffTotal = 0;
+		return psnr_rgb(inputRaster, modifiedRaster);
+	}
+	
+	public static double psnr_rgb(WritableRaster inputRaster, WritableRaster modifiedRaster) {
+		long squaredDiffTotal = totalSquareErrorRGB(inputRaster, modifiedRaster);
 		
+		// If no difference between original and modified image the function should return to prevent a divide by 0 error.
+		if(squaredDiffTotal == 0) {
+			return -1;
+		}
+		
+		double totalComparisonsMade = (double)(inputRaster.getHeight() * inputRaster.getWidth() * RGBPixel.NUMBER_OF_CHANNELS);
+		double meanSquaredError = squaredDiffTotal / totalComparisonsMade;
+		double psnrDecibels = 10*Math.log10((RGBPixel.MAX_POSSIBLE_PIXEL_VALUE * RGBPixel.MAX_POSSIBLE_PIXEL_VALUE) / meanSquaredError);
+		return psnrDecibels;
+	}
+	
+	public static long totalSquareErrorRGB(WritableRaster inputRaster, WritableRaster modifiedRaster) {
+		// Add up all the pixel value differences 
+		long squaredDiffTotal = 0;
 		for (int y = 0; y < inputRaster.getHeight(); y++) {
 			for (int x = 0; x < inputRaster.getWidth(); x++) {
 				// Iterate over all pixels in the input image.
@@ -36,16 +54,16 @@ public class Statistics {
 					int modifiedlIntensity = modifiedPixel.getChannel(Channel.channelMapping(i));
 					
 					int diff = originalIntensity - modifiedlIntensity;
-					// Add Squared differance to error total.
+					// Add Squared difference to error total.
 					squaredDiffTotal += Math.abs(diff * diff);
 
 				}
 			}
-		}	
-		double meanSquaredError = squaredDiffTotal / (double)(inputRaster.getHeight() * inputRaster.getWidth() * RGBPixel.NUMBER_OF_CHANNELS);
-		double psnrDecibels = 10*Math.log10((RGBPixel.MAX_POSSIBLE_PIXEL_VALUE * RGBPixel.MAX_POSSIBLE_PIXEL_VALUE) / meanSquaredError);
-		return psnrDecibels;
+		}
+		return squaredDiffTotal;
 	}
+	
+	
 	public static void main(String[] args) {
 		String originalPath = "PSNR-example-base.png";
 		String modifiedPath = "1024px-PSNR-example-comp-90.jpg";
