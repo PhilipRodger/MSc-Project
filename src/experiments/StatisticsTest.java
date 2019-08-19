@@ -1,10 +1,11 @@
 package experiments;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.runner.JUnitPlatform;
@@ -17,6 +18,7 @@ class StatisticsTest {
 	static String payloadPath = "SamplePayload.zip";
 	
 	//Constants
+	static String watchImagePath = "watch.png";
 	Double psnrFlagIdenticalImages = -1.0;
 	
 	//Output
@@ -25,8 +27,13 @@ class StatisticsTest {
 	
 	@BeforeAll
 	public static void init() {
-		Vessel.attemptRoundTrip(vesselImagePath, payloadPath, 8, 8, 0.3);
-		System.out.println("Setup Done");
+		Vessel.attemptRoundTrip(vesselImagePath, payloadPath);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
@@ -34,7 +41,7 @@ class StatisticsTest {
 		Double dB = Statistics.psnr_rgb(vesselImagePath, expectedStegoImagePath);
 		
 		// Previous Value
-		Double knownGoodValue = 68.74193679858286;
+		Double knownGoodValue = 68.64264361793553;
 		assertEquals(knownGoodValue, dB, "Should match known good value");
 	}
 	
@@ -45,15 +52,22 @@ class StatisticsTest {
 		assertEquals(psnrFlagIdenticalImages, dB, "Should return flag value");
 	}
 	
+	@Test
+	void exceptionWhenDimentionsNotSame() {
+		Assertions.assertThrows(IllegalArgumentException.class, () -> {
+			Statistics.psnr_rgb(vesselImagePath, watchImagePath);
+		});
+	}
+	    
+	
 	@AfterAll
 	public static void tearDown() {
-		File stegoImage = new File(expectedStegoImagePath);
-		File expectedExtract = new File(expectedExtractPath);
-		if (stegoImage.delete() && expectedExtract.delete()) {
-			System.out.println("Teardown Successful");
-		} else {
-			System.out.println("Unable to Teardown");
-		}
+		if (!new File(expectedStegoImagePath).delete()) {
+			System.out.println("Unable to Teardown " + expectedStegoImagePath);
+		} 
+		
+		if (!new File(expectedExtractPath).delete()) {
+			System.out.println("Unable to Teardown " + expectedExtractPath);
+		} 
 	}
-
 }

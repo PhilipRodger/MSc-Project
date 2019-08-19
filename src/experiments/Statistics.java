@@ -7,8 +7,11 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import com.sun.xml.internal.ws.addressing.model.InvalidAddressingHeaderException;
+
 public class Statistics {
 	public static double psnr_rgb(String originalPath, String modifiedPath) {
+		// Unpack paths to raster images
 		BufferedImage input = null;
 		BufferedImage modified = null;
 		try {
@@ -21,6 +24,11 @@ public class Statistics {
 		WritableRaster inputRaster = input.getRaster();
 		WritableRaster modifiedRaster = modified.getRaster();
 		
+		if (!inputRaster.getBounds().equals(modifiedRaster.getBounds())) {
+			throw new IllegalArgumentException("Images not of the same dimentions");
+		}
+		
+		// get psnr from rasters
 		return psnr_rgb(inputRaster, modifiedRaster);
 	}
 	
@@ -41,6 +49,7 @@ public class Statistics {
 	public static long totalSquareErrorRGB(WritableRaster inputRaster, WritableRaster modifiedRaster) {
 		// Add up all the pixel value differences 
 		long squaredDiffTotal = 0;
+				
 		for (int y = 0; y < inputRaster.getHeight(); y++) {
 			for (int x = 0; x < inputRaster.getWidth(); x++) {
 				// Iterate over all pixels in the input image.
@@ -61,13 +70,5 @@ public class Statistics {
 			}
 		}
 		return squaredDiffTotal;
-	}
-	
-	
-	public static void main(String[] args) {
-		String originalPath = "PSNR-example-base.png";
-		String modifiedPath = "1024px-PSNR-example-comp-90.jpg";
-		System.out.println(psnr_rgb(originalPath, modifiedPath));
-		System.out.println("End of Main");
 	}
 }

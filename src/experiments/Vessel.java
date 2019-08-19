@@ -3,6 +3,14 @@ package experiments;
 import java.util.ArrayList;
 
 public class Vessel {
+	// Sensible defaults
+	public static final String defaultStegKey = "This is a default steganographic key";
+	public static final int defaultSegmentWidth = 8;
+	public static final int defaultSegmentHeight = 8;
+	public static final double defaultAlphaComplexity = 0.3;
+	static final boolean greyEncoding = true;
+
+	// Instance variables
 	private int segmentWidth;
 	private int segmentHeight;
 	private double alphaComplexity;
@@ -16,12 +24,10 @@ public class Vessel {
 	private Payload payload;
 	private String stegKey;
 
-	static final boolean greyEncoding = true;
-
 	public int getHeaderSize() {
 		return headerBitSize;
 	}
-	
+
 	public int getSegmentWidth() {
 		return segmentWidth;
 	}
@@ -33,19 +39,19 @@ public class Vessel {
 	public double getAlphaComplexity() {
 		return alphaComplexity;
 	}
-	
+
 	public int getWidth() {
 		return vessel.getWidth();
 	}
-	
+
 	public int getHeight() {
 		return vessel.getHeight();
 	}
-	
+
 	public long getBitsToAddressBits() {
 		return bitsToAddressBits;
 	}
-	
+
 	public void setStegKey(String stegKey) {
 		this.stegKey = stegKey;
 	}
@@ -63,18 +69,22 @@ public class Vessel {
 	public Vessel(String vesselPath) {
 		sourceFormat = SupportedImageFormats.getFormat(vesselPath);
 		vessel = BitImageSet.makeBitImageSet(vesselPath, greyEncoding);
+
+		// Set Sensible defaults
+		setParameters(defaultSegmentWidth, defaultSegmentHeight, defaultAlphaComplexity);
+
 	}
-	
+
 	public Vessel(String vesselPath, int segmentWidth, int segmentHeight, double alphaComplexity) {
 		this(vesselPath);
 		setParameters(segmentWidth, segmentHeight, alphaComplexity);
 	}
-	
-	public void setParameters (int segmentWidth, int segmentHeight, double alphaComplexity){
+
+	public void setParameters(int segmentWidth, int segmentHeight, double alphaComplexity) {
 		this.segmentWidth = segmentWidth;
 		this.segmentHeight = segmentHeight;
 		this.alphaComplexity = alphaComplexity;
-		
+
 		viableSegments = vessel.getFrameCorners(segmentWidth, segmentHeight, alphaComplexity);
 		maxPossibleInfo = (viableSegments.size() * (segmentWidth * segmentHeight - 1)); // 1 bit per segment for map
 		bitsToAddressBits = numberOfBitsToRepresent(maxPossibleInfo);
@@ -82,7 +92,7 @@ public class Vessel {
 		headerBitSize = bitsToAddressBits + 1; // End Address and current segment conjugation bit
 	}
 
-	public void embedFile(String path) {	
+	public void embedFile(String path) {
 		payload = new Payload(path);
 		try {
 			payload.performEncryptDecrypt(stegKey, CipherMode.ENCRYPT);
@@ -91,95 +101,91 @@ public class Vessel {
 			e.printStackTrace();
 		}
 		payload.segmentisePayload(this, segmentWidth, segmentHeight, alphaComplexity);
-		
+
 		if (payload.getNumberOfSegments() > viableSegments.size()) {
 			// Payload is too big for vessel
 			throw new AssertionError("Payload is too big for vessel");
 		}
-		
+
 		ArrayList<BitMap> payloadSegments = payload.getSegments();
 		for (int i = 0; i < payloadSegments.size(); i++) {
 			Coordinant toReplace = viableSegments.get(i);
 			vessel.replaceSegment(toReplace, payloadSegments.get(i));
 		}
 	}
-	
+
 	public void saveImage(String fileName) {
 		vessel.convertToImage(fileName, sourceFormat);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "Payload [segmentWidth=" + segmentWidth + ", segmentHeight=" + segmentHeight + ", maxPossibleInfo="
 				+ maxPossibleInfo + ", bitsToAddressBits=" + bitsToAddressBits + ", bitsToAddressFrame="
 				+ bitsToAddressFrame + "]";
 	}
-	
+
 	public void generateSampleStegImage() {
 		String vesselPath = "lena_color.bmp";
 		String payloadPath = "SamplePayload.zip";
 		String stegImagePath = "lena_colorSECRET.bmp";
-		
+
 		int segmentWidth = 8;
 		int segmentHeight = 8;
 		double alphaComplexity = 0.3;
-		
+
 		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
-		
+
 		vessel.embedFile(payloadPath);
 		vessel.saveImage(stegImagePath);
 	}
-	
-	public Payload extractPayload() {
+
+	public Payload extractPayload() throws Exception {
 		ArrayList<BitMap> extractedSegments = extractViableSegments();
 		Payload payload = new Payload(this);
-		try {
-			payload.performEncryptDecrypt(stegKey, CipherMode.DECRYPT);
-		} catch (Exception e) {
-			System.out.println("Unable to decrypt file, extracting file without decrypting");
-			e.printStackTrace();
-		}
+		payload.performEncryptDecrypt(stegKey, CipherMode.DECRYPT);
 		return payload;
 	}
-	
-	public ArrayList<BitMap> extractViableSegments(){
+
+	public ArrayList<BitMap> extractViableSegments() {
 		ArrayList<BitMap> extractedSegments = new ArrayList<>();
-		for (Coordinant coordanant: viableSegments) {
+		for (Coordinant coordanant : viableSegments) {
 			extractedSegments.add(vessel.extractSegment(coordanant, segmentWidth, segmentHeight));
 		}
 		return extractedSegments;
 	}
-	
+
 	public static void attemptRoundTrip(String vesselPath, String payloadPath) {
+		attemptRoundTrip(vesselPath, payloadPath, defaultStegKey);
+	}
+
+	public static void attemptRoundTrip(String vesselPath, String payloadPath, String stegKey) {
 		int segmentWidth = 8;
 		int segmentHeight = 8;
 		double alphaComplexity = 0.3;
-		
-		attemptRoundTrip(vesselPath, payloadPath, segmentWidth, segmentHeight, alphaComplexity);
+
+		attemptRoundTrip(vesselPath, payloadPath, stegKey, segmentWidth, segmentHeight, alphaComplexity);
 	}
-	
-	public static void attemptRoundTrip(String vesselPath, String payloadPath, 	int segmentWidth, int segmentHeight, double alphaComplexity ) {
+
+	public static void attemptRoundTrip(String vesselPath, String payloadPath, String stegKey, int segmentWidth,
+			int segmentHeight, double alphaComplexity) {
 		String stegoPath = "stego" + vesselPath;
 		String extractedPath = "extracted" + payloadPath;
-	
-		
+
 		Vessel vessel = new Vessel(vesselPath, segmentWidth, segmentHeight, alphaComplexity);
-		vessel.setStegKey("HowdyThere");
+		vessel.setStegKey(stegKey);
 		vessel.embedFile(payloadPath);
 		vessel.saveImage(stegoPath.replaceFirst("[.][^.]+$", ""));
 		vessel = null;
-		
-		
+
 		Vessel stegoImage = new Vessel(stegoPath, segmentWidth, segmentHeight, alphaComplexity);
-		stegoImage.setStegKey("HowdyThere");
-		Payload extract = stegoImage.extractPayload();
+		stegoImage.setStegKey(stegKey);
+		Payload extract = null;
+		try {
+			extract = stegoImage.extractPayload();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		extract.writeFile(extractedPath);
 	}
-
-	public static void main(String[] args) {
-		attemptRoundTrip("lena_color.bmp", "SamplePayload.zip", 8, 8, 0.3);
-		System.out.println("End of Main");
-	}
-
-
 }
