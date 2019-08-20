@@ -1,22 +1,17 @@
-package experiments;
-
-import java.util.IllegalFormatException;
-
-import javax.activation.UnsupportedDataTypeException;
+package minimal;
 
 public enum SupportedImageFormats {
-	BMP,
-	PNG;
-	
+	BMP, PNG;
+
 	public static SupportedImageFormats getFormat(String path) {
 		path = path.toLowerCase();
 		if (path.endsWith("bmp")) {
 			return BMP;
 		} else {
 			return PNG;
-		} 
+		}
 	}
-	
+
 	public static String getFileExtension(SupportedImageFormats format) {
 		if (format == BMP) {
 			return "bmp";
