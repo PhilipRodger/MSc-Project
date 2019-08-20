@@ -14,6 +14,14 @@ public class BitMap {
 	private Channel channel;
 	private int bitmap;
 
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+
 	public BitMap(int width, int height, Channel channel, int bitmap) {
 		this.width = width;
 		this.height = height;
@@ -60,13 +68,13 @@ public class BitMap {
 		return candidatesUnchecked;
 	}
 
-	public BitMap extractSegment(Coordinant topLeftHandCorner, int extractWidth, int extractHeight) {
+	public BitMap extractSegment(Coordinant upperLeft, int extractWidth, int extractHeight) {
 
 		// Define edges of the rectangle:
-		int minX = topLeftHandCorner.getX();
+		int minX = upperLeft.getX();
 		int maxX = minX + extractWidth;
 
-		int minY = topLeftHandCorner.getY();
+		int minY = upperLeft.getY();
 		int maxY = minY + extractHeight;
 
 

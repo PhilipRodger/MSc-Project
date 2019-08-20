@@ -8,11 +8,15 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import experiments.SupportedImageFormats;
+
 public class BitImageSet {
 	private BitMap[][] bitmaps;
 	private int width;
 	private int height;
 	private boolean greyEncoded = false;
+	private String fileName;
+	private SupportedImageFormats sourceFormat;
 	
 	public int getWidth() {
 		return width;
@@ -21,8 +25,14 @@ public class BitImageSet {
 	public int getHeight() {
 		return height;
 	}
+	
+	public boolean getBit(Channel c, int bitmapIndex, int x, int y) {
+		return bitmaps[Channel.channelMapping(c)][bitmapIndex].getBit(x, y);
+	}
 
-	public BitImageSet(BufferedImage input, boolean convertToGreyEncoding) {
+	public BitImageSet(BufferedImage input, String path, boolean convertToGreyEncoding) {
+		sourceFormat = SupportedImageFormats.getFormat(path);
+		fileName = path.replaceFirst("[.][^.]+$", "");
 
 		// Take note of metadata and flag.
 		greyEncoded = convertToGreyEncoding;
@@ -95,8 +105,12 @@ public class BitImageSet {
 		return output;
 	}
 	
-	public void convertToImage(String fileName, SupportedImageFormats sourceFormat) {
-		String filePath = fileName  + "." + SupportedImageFormats.getFileExtension(sourceFormat);
+	public void convertToImage(String addionalInfo) {
+		convertToImage(addionalInfo, sourceFormat);
+	}
+	
+	public void convertToImage(String addionalInfo, SupportedImageFormats sourceFormat) {
+		String filePath = fileName +  addionalInfo  + "." + SupportedImageFormats.getFileExtension(sourceFormat);
 		try {
 			ImageIO.write(this.getBufferedImage(), SupportedImageFormats.getFileExtension(sourceFormat), new File(filePath));
 		} catch (IOException e) {
@@ -106,12 +120,13 @@ public class BitImageSet {
 	
 	public static BitImageSet makeBitImageSet(String path, boolean convertToGrey) {
 		BufferedImage input = null;
+		
 		try {
 			input = ImageIO.read(new File(path));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return new BitImageSet(input, convertToGrey);
+		return new BitImageSet(input, path, convertToGrey);
 	}
 	
 	public ArrayList<Coordinant> getFrameCorners(BPCS algorithim) {
