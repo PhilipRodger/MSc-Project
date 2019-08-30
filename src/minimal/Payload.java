@@ -12,11 +12,11 @@ import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.sun.xml.internal.bind.v2.model.util.ArrayInfoUtil;
 
 public class Payload {
 	private ArrayList<Byte> data;
 	private ArrayList<BitMap> segments;
+	private SegmentManager manager;
 	private long nextBit;
 	private boolean nextBitNeedsNewSegment;
 	private int segmentWidth;
@@ -26,15 +26,17 @@ public class Payload {
 	private int nextSegmentIndex;
 	private double complexityCutoff;
 	private long lastDataBit;
-
+	private String stegKey;
 	private BitMap currentSegment;
 
-	public Payload(String path) {
+	public Payload(String path, SegmentManager manager) {
+		this.manager = manager;
 		data = getBytesFromFile(path);
 	}
 
-	public Payload(Vessel stegImage) {
-		unsegmentisePayload(stegImage);
+	public Payload(SegmentManager manager) {
+		this.manager = manager;
+		unsegmentisePayload();
 	}
 
 	public int getNumberOfSegments() {
@@ -55,7 +57,7 @@ public class Payload {
 			}
 			return data;
 		} catch (FileNotFoundException e) {
-			System.out.println("Unable to find file");
+			System.out.println("Unable to find file " + path);
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -66,40 +68,37 @@ public class Payload {
 		return null;
 	}
 
-	public void segmentisePayload(Vessel vessel, int segmentWidth, int segmentHeight, double complexityCutoff) {
+	public void segmentisePayload() {
 		// Initialise segment info
 		clearSegments();
-		this.complexityCutoff = complexityCutoff;
-		this.segmentWidth = segmentWidth;
-		this.segmentHeight = segmentHeight;
+		this.segmentWidth = manager.getSegmentWidth();
+		this.segmentHeight = manager.getSegmentHeight();
 		segmentCapacity = segmentHeight * segmentWidth;
 		nextInternalSegmentIndex = 0;
 
 		// Clear Space for Data Header
-		writeHeader(vessel);
-
+		writeHeader();
+		
 		// Write Data
 		writeData();
 
 		// Conjugate Maps below complexity threshold
-		conjugateMapsBelowThreshold();
+		manager.conjugateMapsBelowThreshold(segments);
 	}
 
-	public void unsegmentisePayload(Vessel vessel) {
+	public void unsegmentisePayload() {
 
 		// Initialise segment info
 		data = new ArrayList<>();
-		segments = vessel.extractViableSegments();
-		complexityCutoff = vessel.getAlphaComplexity();
-		segmentWidth = vessel.getSegmentWidth();
-		segmentHeight = vessel.getSegmentHeight();
-		segmentCapacity = segmentHeight * segmentWidth;
-		nextInternalSegmentIndex = 0;
-		nextSegmentIndex = 0;
+		segments = manager.extractViableSegments();
+		segmentWidth = manager.getSegmentWidth();
+		segmentHeight = manager.getSegmentHeight();
+		segmentCapacity = segmentWidth * segmentHeight;
+
 
 		unconjugateMappedSegments();
 
-		readHeader(vessel);
+		readHeader();
 		while (nextBit <= lastDataBit - 1) {
 			readByte();
 		}
@@ -111,12 +110,12 @@ public class Payload {
 		nextBit = 0;
 	}
 
-	private void writeHeader(Vessel toWrite) {
+	private void writeHeader() {
 		long datalength = Byte.SIZE * data.size();
-		lastDataBit = datalength + toWrite.getBitsToAddressBits();
+		lastDataBit = datalength + manager.getBitsToAddressBits();
 		makeNewSegment();
 
-		for (int i = 0; i < toWrite.getBitsToAddressBits(); i++) {
+		for (int i = 0; i < manager.getBitsToAddressBits(); i++) {
 			if (((lastDataBit >> i) & 1) == 1) {
 				bitToSegmentWriter(true);
 			} else {
@@ -126,11 +125,11 @@ public class Payload {
 		}
 	}
 
-	private void readHeader(Vessel toRead) {
+	private void readHeader() {
 		lastDataBit = 0;
 		getNewSegment();
 
-		for (int i = 0; i < toRead.getBitsToAddressBits(); i++) {
+		for (int i = 0; i < manager.getBitsToAddressBits(); i++) {
 			if (readBit()) {
 				lastDataBit = lastDataBit + (1 << i);
 			}
@@ -143,6 +142,15 @@ public class Payload {
 		}
 	}
 
+
+	private boolean getBitFromByte(byte b, int index) {
+		if (((b >> index) & 1) == 1) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	private void writeByte(byte toWrite) {
 		for (int i = 0; i < Byte.SIZE; i++) {
 			bitToSegmentWriter(getBitFromByte(toWrite, i));
@@ -158,15 +166,6 @@ public class Payload {
 		}
 		data.add(b);
 	}
-
-	private boolean getBitFromByte(byte b, int index) {
-		if (((b >> index) & 1) == 1) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	private void bitToSegmentWriter(boolean bit) {
 		if (nextBitNeedsNewSegment) {
 			makeNewSegment();
@@ -222,15 +221,6 @@ public class Payload {
 		return currentSegment.getBit(nextInternalSegmentIndex % segmentWidth, nextInternalSegmentIndex / segmentWidth);
 	}
 
-	private void conjugateMapsBelowThreshold() {
-		for (int i = 0; i < segments.size(); i++) {
-			BitMap map = segments.get(i);
-			if (map.getAlphaComplexity() < complexityCutoff) {
-				map = map.getConjugate();
-				segments.set(i, map);
-			}
-		}
-	}
 
 	public void writeFile(String path) {
 		try (FileOutputStream extracted = new FileOutputStream(path)) {
@@ -249,7 +239,7 @@ public class Payload {
 		for (int i = 0; i < segments.size(); i++) {
 			BitMap segment = segments.get(i);
 			if (segment.getBit(0, 0)) {
-				segments.set(i, segment.getConjugate());
+				segments.set(i, manager.getConjugate(segment));
 			}
 		}
 	}
@@ -277,7 +267,7 @@ public class Payload {
         for (int i = 0; i < primative.length; i++) {
 			primative[i] = data.get((int) i);
 		}
-        
+                
         // Perform cipher  
         byte[] encrypted = cipher.doFinal(primative);
         
@@ -299,20 +289,6 @@ public class Payload {
 
 	}
 
-	public static void main(String[] args) {
-		Payload payload = new Payload("SamplePayload.zip");
-		//payload.encryptPayload("Hi");
-		String vesselPath = "lena_color.bmp";
-		int segmentWidth = 8;
-		int segmentHeight = 8;
-		double alphaComplexity = 0.3;
-
-		Vessel vessel = new Vessel(vesselPath);
-		payload.segmentisePayload(vessel, segmentWidth, segmentHeight, alphaComplexity);
-
-		payload.unsegmentisePayload(vessel);
-		System.out.println("End of Main");
-	}
 
 	// Copied/adapted from
 	// https://stackoverflow.com/questions/11528898/convert-byte-to-binary-in-java
@@ -321,5 +297,9 @@ public class Payload {
 		for (int i = 0; i < Byte.SIZE; i++)
 			sb.append((b << i % Byte.SIZE & 0x80) == 0 ? '0' : '1');
 		return sb.toString();
+	}
+	
+	public void setStegKey(String stegKey) {
+		this.stegKey = stegKey;
 	}
 }

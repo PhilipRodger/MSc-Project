@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Random;
 
+
 public class BitMap {
 	private int width;
 	private int height;
@@ -55,14 +56,11 @@ public class BitMap {
 		return image[y][x];
 	}
 
-	public ArrayList<Coordinant> getFrameCorners(BPCS algorithim) {
+	public ArrayList<Coordinant> getFrameCorners(int frameWidth, int frameHeight, Channel channel, int bitMap) {
 		ArrayList<Coordinant> candidatesUnchecked = new ArrayList<>();
-		int frameWidth = algorithim.getFrameWidth();
-		int frameHeight = algorithim.getFrameHeight();
-
 		for (int x = 0; x + frameWidth - 1 < width; x += frameWidth) {
 			for (int y = 0; y + frameHeight - 1 < height; y += frameHeight) {
-				candidatesUnchecked.add(new Coordinant(x, y, channel, bitmap));
+				candidatesUnchecked.add(new Coordinant(x, y, channel, bitMap));
 			}
 		}
 		return candidatesUnchecked;

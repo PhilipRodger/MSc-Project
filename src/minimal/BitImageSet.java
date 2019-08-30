@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
-import experiments.SupportedImageFormats;
+
 
 public class BitImageSet {
 	private BitMap[][] bitmaps;
@@ -28,6 +28,10 @@ public class BitImageSet {
 	
 	public boolean getBit(Channel c, int bitmapIndex, int x, int y) {
 		return bitmaps[Channel.channelMapping(c)][bitmapIndex].getBit(x, y);
+	}
+
+	public String getFileName() {
+		return fileName;
 	}
 
 	public BitImageSet(BufferedImage input, String path, boolean convertToGreyEncoding) {
@@ -72,6 +76,24 @@ public class BitImageSet {
 		}
 	}
 	
+	public BitImageSet(BitImageSet toClone) {
+		width = toClone.width;
+		height = toClone.height;
+		greyEncoded = toClone.greyEncoded;
+		bitmaps = new BitMap[toClone.bitmaps.length][];
+		fileName = toClone.fileName;
+		sourceFormat = toClone.sourceFormat;
+
+
+		// make deep copy of bitmaps
+		for (int i = 0; i < bitmaps.length; i++) {
+			bitmaps[i] = new BitMap[toClone.bitmaps[i].length];
+			for (int j = 0; j < bitmaps[i].length; j++) {
+				bitmaps[i][j] = new BitMap(toClone.bitmaps[i][j]);
+			}
+		}
+	}
+	
 	public BufferedImage getBufferedImage() {
 		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -109,13 +131,14 @@ public class BitImageSet {
 		convertToImage(addionalInfo, sourceFormat);
 	}
 	
-	public void convertToImage(String addionalInfo, SupportedImageFormats sourceFormat) {
+	public String convertToImage(String addionalInfo, SupportedImageFormats sourceFormat) {
 		String filePath = fileName +  addionalInfo  + "." + SupportedImageFormats.getFileExtension(sourceFormat);
 		try {
 			ImageIO.write(this.getBufferedImage(), SupportedImageFormats.getFileExtension(sourceFormat), new File(filePath));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return filePath;
 	}
 	
 	public static BitImageSet makeBitImageSet(String path, boolean convertToGrey) {
@@ -129,17 +152,22 @@ public class BitImageSet {
 		return new BitImageSet(input, path, convertToGrey);
 	}
 	
-	public ArrayList<Coordinant> getFrameCorners(BPCS algorithim) {
-		ArrayList<Coordinant> candidateBitMapFrameCorners = new ArrayList<>();
+	public ArrayList<Coordinant> getFrameCorners(int segmentWidth, int segmentHeight) {
+		ArrayList<Coordinant> allBitMapFrameCorners = new ArrayList<>();
 		for (int i = 0; i < bitmaps.length; i++) {
 			for (int j = 0; j < bitmaps[i].length; j++) {
-				ArrayList<Coordinant> bitMapFrameCorners = bitmaps[i][j].getFrameCorners(algorithim);
-				ArrayList<Coordinant> meetCriteria = bitmaps[i][j].getCoordinantsMatchingCriteria(algorithim, bitMapFrameCorners); 
-				candidateBitMapFrameCorners.addAll(meetCriteria);
-				
+				ArrayList<Coordinant> bitMapFrameCorners = bitmaps[i][j].getFrameCorners(segmentWidth, segmentHeight, Channel.channelMapping(i), j);
+				for (Coordinant coordinant : bitMapFrameCorners) {
+					// Add info about bitmap it came from.
+					coordinant.setChannel(Channel.channelMapping(i));
+					coordinant.setBitMap(j);
+
+					// Then add to the list
+					allBitMapFrameCorners.add(coordinant);
+				}
 			}
 		}
-		return candidateBitMapFrameCorners;
+		return allBitMapFrameCorners;
 	}
 	
 	public void replaceSegment(Coordinant toReplace, BitMap replacement) {
@@ -149,5 +177,8 @@ public class BitImageSet {
 	public BitMap extractSegment(Coordinant coordanant, int segmentWidth, int segmentHeight) {
 		return bitmaps[Channel.channelMapping(coordanant.getChannel())][coordanant.getBitMap()].extractSegment(coordanant, segmentWidth, segmentHeight);
 	}
-
+	
+	public String saveImage(String fileName) {
+		return convertToImage(fileName, sourceFormat);
+	}
 }

@@ -14,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.sun.xml.internal.bind.v2.model.util.ArrayInfoUtil;
 
+
 public class Payload {
 	private ArrayList<Byte> data;
 	private ArrayList<BitMap> segments;
@@ -300,18 +301,7 @@ public class Payload {
 	}
 
 	public static void main(String[] args) {
-		Payload payload = new Payload("SamplePayload.zip");
-		//payload.encryptPayload("Hi");
-		String vesselPath = "lena_color.bmp";
-		int segmentWidth = 8;
-		int segmentHeight = 8;
-		double alphaComplexity = 0.3;
-
-		Vessel vessel = new Vessel(vesselPath);
-		payload.segmentisePayload(vessel, segmentWidth, segmentHeight, alphaComplexity);
-
-		payload.unsegmentisePayload(vessel);
-		System.out.println("End of Main");
+		Vessel.attemptRoundTrip("lena_color.bmp", "test2.zip");
 	}
 
 	// Copied/adapted from
