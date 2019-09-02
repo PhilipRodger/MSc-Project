@@ -1,16 +1,11 @@
 package minimal;
 
-
-public class ConstantAlphaComplexityClassifier extends SegmentManager{
-
-	private double alphaCutoff;
-	
+public class ModifiedAlphaComplexityClassifier extends SegmentManager{
 	// Does not change so can store it
 	private int maxComplexity;
 	
-	public ConstantAlphaComplexityClassifier(BitImageSet source, double alphaCutoff, int segmentWidth, int segmentHeight) {
+	public ModifiedAlphaComplexityClassifier(BitImageSet source, int segmentWidth, int segmentHeight) {
 		super(source, segmentWidth, segmentHeight);
-		this.alphaCutoff = alphaCutoff;
 		complexityDefinition = new AlphaComplexity();
 		maxComplexity = AlphaComplexity.maxComplexity(segmentWidth, segmentHeight);
 		conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
@@ -19,21 +14,48 @@ public class ConstantAlphaComplexityClassifier extends SegmentManager{
 	@Override
 	protected boolean meetsCriteriaForSegmentSelection(Coordinant candidate) {
 		BitMap toCheck = source.extractSegment(candidate, segmentWidth, segmentHeight);
-		return meetsCriteriaForPayloadEmbed(toCheck);
-	}
-	
-	@Override
-	protected boolean meetsCriteriaForPayloadEmbed(BitMap toCheck) {
 		int complexity = complexityDefinition.getComplexity(toCheck);
 		double alphaComplexity = getAlphaComplexity(complexity);
-		if (alphaComplexity >= alphaCutoff) {
+		if (alphaComplexity >= getThreshold(candidate)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 	
+	@Override
+	protected boolean meetsCriteriaForPayloadEmbed(BitMap toCheck) {
+		int complexity = complexityDefinition.getComplexity(toCheck);
+		double alphaComplexity = getAlphaComplexity(complexity);
+		if (alphaComplexity > AlphaComplexity.middleComplexity) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public static double getThreshold(Coordinant toCheck) {
+		int bitIndex = toCheck.getBitMap();
+		switch (bitIndex) {
+		case 0:
+			return 0.0;
+		case 1:
+			return 0.0;
+		case 2:
+			return 0.40;
+		case 3:
+			return 0.425;
+		case 4:
+			return 0.45;
+		case 5:
+			return 0.475;
+		default:
+			return 2;
+		}
+	}
+	
 	public double getAlphaComplexity(int complexity) {
 		return complexity / (double) maxComplexity;
 	}
+
 }

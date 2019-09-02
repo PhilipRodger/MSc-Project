@@ -1,13 +1,16 @@
 package minimal;
 
 public class AlphaComplexity extends ComplexityMeasure {
-	public int getComplexity(BitMap input) {
+
+	public static double middleComplexity = 0.5;
+
+	public int getComplexity(BitMap input) {		
 		// Define edges of the rectangle:
 		int minX = 0;
-		int maxX = input.getWidth() - 1;
+		int maxX = input.getWidth();
 
 		int minY = 0;
-		int maxY = input.getHeight() - 1;
+		int maxY = input.getHeight();
 
 		// Calculates the complexity of the rectange starting at the coordinant of the
 		// top left hand corner and extending out the width and height of the rectangle.
@@ -22,7 +25,7 @@ public class AlphaComplexity extends ComplexityMeasure {
 				if (walker != compareBit) {
 					complexityCount++;
 				}
-				walker = compareBit;
+			walker = compareBit;
 			}
 		}
 
@@ -49,7 +52,7 @@ public class AlphaComplexity extends ComplexityMeasure {
 	}
 
 	@Override
-	protected BitMap getConjugationMap(int frameWidth, int frameHeight) {
+	public BitMap getConjugationMap(int frameWidth, int frameHeight) {
 		boolean blackTopLeft = false;
 		int remainder = 0;
 		if (blackTopLeft) {

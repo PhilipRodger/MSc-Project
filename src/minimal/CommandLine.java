@@ -1,5 +1,6 @@
 package minimal;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CommandLine {
@@ -22,7 +23,6 @@ public class CommandLine {
 					settings.put("mode", keyValue[0]);
 				}
 			}
-			
 		}
 		if (!settings.containsKey("algorithim")) {
 			throw new IllegalArgumentException("Must specify what algorithim to use e.g.'BPCS_Original'");
@@ -32,10 +32,61 @@ public class CommandLine {
 			throw new IllegalArgumentException(
 					"Algorithim name not recognised enter valid name e.g.'BPCS_Original'");
 		}
-		Algorithims.sendArgsToAlgorithim(algorithim, settings);
+		runFromParams(algorithim, settings);
 	}
+	
+	public static void runFromParams(Algorithims algorithimType, HashMap<String, String> params) {		
+		//Defaults
+		String stegKey = BPCS.defaultStegKey; 
+		
+		if (params.containsKey("key")) {
+			stegKey = params.get("key");
+		}
+		
+		BPCS bpcs = Algorithims.createAlgorithim(algorithimType, params);
+		
+		
+		if (!params.containsKey("mode")) {
+			throw new IllegalArgumentException("Must specify the mode of use e.g. 'mode=embed', 'mode=extract', or 'mode=roundtrip'");
+		}
+		String mode = params.get("mode");
+		switch (mode) {
+		case "embed":
+			if (!params.containsKey("payload")) {
+				throw new IllegalArgumentException("Must specify the payload path you wish to embed using 'payload=[path]'");
+			}
+			String stegoPath = bpcs.embedFile(params.get("payload"), stegKey);
+			System.out.println("Succesfully embedded, output: " + stegoPath);
+			break;
+		case "extract":
+			if (!params.containsKey("payload")) {
+				throw new IllegalArgumentException("Must specify the payload path you wish to extract using 'payload=[path]'");
+			}
+			bpcs.extractFile(params.get("payload"), stegKey);
+			System.out.println("Succesfully Extracted payload, output: " + params.get("payload"));
+			break;
+		case "roundtrip":
+			if (!params.containsKey("payload")) {
+				throw new IllegalArgumentException("Must specify the payload path you wish to embed using 'payload=[path]'");
+			}
+			
+			// Embed Payload Step
+			stegoPath = bpcs.embedFile(params.get("payload"), stegKey);
+			params.put("vessel", stegoPath);
+			System.out.println("Succesfully Embedded, output: " + stegoPath);
+			
+			// Clear so it can't cheat
+			bpcs = null;
 
-	private static void printHelp() {
-		System.out.println("Invalid input");
+			// Extract Payload Step
+			bpcs = Algorithims.createAlgorithim(algorithimType, params);
+			String extractedPath = "extracted" + params.get("payload");
+			bpcs.extractFile(extractedPath, stegKey);
+			System.out.println("Succesfully Extracted, output: " + extractedPath);
+			break;
+			
+		default:
+			throw new IllegalArgumentException("Must specify a valid mode of use e.g.embed, extract, or roundtrip");
+		}
 	}
 }

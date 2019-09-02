@@ -22,11 +22,10 @@ public class Payload {
 	private int segmentWidth;
 	private int segmentHeight;
 	private int segmentCapacity;
+	private long totalPossibleCapacity;
 	private int nextInternalSegmentIndex;
 	private int nextSegmentIndex;
-	private double complexityCutoff;
 	private long lastDataBit;
-	private String stegKey;
 	private BitMap currentSegment;
 
 	public Payload(String path, SegmentManager manager) {
@@ -71,6 +70,7 @@ public class Payload {
 	public void segmentisePayload() {
 		// Initialise segment info
 		clearSegments();
+		manager.getViableFrameCorners();
 		this.segmentWidth = manager.getSegmentWidth();
 		this.segmentHeight = manager.getSegmentHeight();
 		segmentCapacity = segmentHeight * segmentWidth;
@@ -113,6 +113,7 @@ public class Payload {
 	private void writeHeader() {
 		long datalength = Byte.SIZE * data.size();
 		lastDataBit = datalength + manager.getBitsToAddressBits();
+		manager.getViableFrameCorners();
 		makeNewSegment();
 
 		for (int i = 0; i < manager.getBitsToAddressBits(); i++) {
@@ -120,7 +121,6 @@ public class Payload {
 				bitToSegmentWriter(true);
 			} else {
 				bitToSegmentWriter(false);
-
 			}
 		}
 	}
@@ -297,9 +297,5 @@ public class Payload {
 		for (int i = 0; i < Byte.SIZE; i++)
 			sb.append((b << i % Byte.SIZE & 0x80) == 0 ? '0' : '1');
 		return sb.toString();
-	}
-	
-	public void setStegKey(String stegKey) {
-		this.stegKey = stegKey;
 	}
 }

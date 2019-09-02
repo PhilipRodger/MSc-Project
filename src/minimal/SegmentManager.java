@@ -1,6 +1,7 @@
 package minimal;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public abstract class SegmentManager {
 	protected BitImageSet source;
@@ -27,46 +28,47 @@ public abstract class SegmentManager {
 	}
 	
 	public int getNumSegments() {
+		if (viableSegments == null) {
+			getViableFrameCorners();
+		}
 		return viableSegments.size();
 	}
-
-	protected abstract boolean meetsCriteria(Coordinant check);
 	
-	protected abstract boolean meetsCriteria(BitMap check);
+	public ArrayList<Coordinant> getViableSegments() {
+		return viableSegments;
+	}
+
+	protected abstract boolean meetsCriteriaForSegmentSelection(Coordinant check);
+	
+	protected abstract boolean meetsCriteriaForPayloadEmbed(BitMap check);
 
 	public SegmentManager(BitImageSet source,int segmentWidth, int segmentHeight) {
 		this.source = source;
 		this.segmentWidth = segmentWidth;
 		this.segmentHeight = segmentHeight;
 		segmentCapacity = segmentHeight * segmentWidth;
-		getFrameCorners();
 	}
 
-	public ArrayList<Coordinant> getFrameCorners(){
-		ArrayList<Coordinant> results = source.getFrameCorners(segmentWidth, segmentHeight);
-		maxPossibleInfo = results.size() * segmentCapacity;
-		bitsToAddressBits = util.numberOfBitsToRepresent(maxPossibleInfo);
-		viableSegments = results;
-		return results;
-	}
-	
-	public ArrayList<Coordinant> meetsCriteria(ArrayList<Coordinant> candidates){
-		ArrayList<Coordinant> validCoords = new ArrayList<>();
-		for (Coordinant candidate : candidates) {
-			if (meetsCriteria(candidate)) {
-				validCoords.add(candidate);
+	public ArrayList<Coordinant> getViableFrameCorners(){
+		ArrayList<Coordinant> allCorners = source.getFrameCorners(segmentWidth, segmentHeight);
+		viableSegments = new ArrayList<>();
+		for (Coordinant coordinant : allCorners) {
+			if (meetsCriteriaForSegmentSelection(coordinant)) {
+				viableSegments.add(coordinant);
 			}
 		}
-		return validCoords;
+		maxPossibleInfo = viableSegments.size() * segmentCapacity;
+		bitsToAddressBits = util.numberOfBitsToRepresent(maxPossibleInfo);
+		return viableSegments;
 	}
 	
 	public void conjugateMapsBelowThreshold(ArrayList<BitMap> segments) {
 		conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
 		for (int i = 0; i < segments.size(); i++) {
 			BitMap map = segments.get(i);
-			if (!meetsCriteria(map)) {
-				map = getConjugate(map);
-				segments.set(i, map);
+			if (!meetsCriteriaForPayloadEmbed(map)) {
+				BitMap mapConj = getConjugate(map);
+				segments.set(i, mapConj);
 			}
 		}
 	}
@@ -77,7 +79,7 @@ public abstract class SegmentManager {
 
 	public ArrayList<BitMap> extractViableSegments() {
 		if (viableSegments == null) {
-			viableSegments = getFrameCorners();
+			viableSegments = getViableFrameCorners();
 		}
 		ArrayList<BitMap> extracts = new ArrayList<>();
 		for (Coordinant coordinant : viableSegments) {
@@ -94,5 +96,9 @@ public abstract class SegmentManager {
 		}
 		return output;
 		
+	}
+
+	public long getMaxPayloadBytes() {
+		return maxPossibleInfo/8;
 	}
 }

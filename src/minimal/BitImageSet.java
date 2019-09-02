@@ -154,13 +154,13 @@ public class BitImageSet {
 	
 	public ArrayList<Coordinant> getFrameCorners(int segmentWidth, int segmentHeight) {
 		ArrayList<Coordinant> allBitMapFrameCorners = new ArrayList<>();
-		for (int i = 0; i < bitmaps.length; i++) {
-			for (int j = 0; j < bitmaps[i].length; j++) {
-				ArrayList<Coordinant> bitMapFrameCorners = bitmaps[i][j].getFrameCorners(segmentWidth, segmentHeight, Channel.channelMapping(i), j);
+		for (int i = 0; i < bitmaps[0].length; i++) {
+			for (int j = 0; j < bitmaps.length; j++) {
+				ArrayList<Coordinant> bitMapFrameCorners = bitmaps[j][i].getFrameCorners(segmentWidth, segmentHeight, Channel.channelMapping(j), i);
 				for (Coordinant coordinant : bitMapFrameCorners) {
 					// Add info about bitmap it came from.
-					coordinant.setChannel(Channel.channelMapping(i));
-					coordinant.setBitMap(j);
+					coordinant.setChannel(Channel.channelMapping(j));
+					coordinant.setBitMap(i);
 
 					// Then add to the list
 					allBitMapFrameCorners.add(coordinant);
