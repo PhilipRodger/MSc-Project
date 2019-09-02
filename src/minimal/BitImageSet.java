@@ -11,12 +11,12 @@ import javax.imageio.ImageIO;
 
 
 public class BitImageSet {
-	private BitMap[][] bitmaps;
-	private int width;
-	private int height;
-	private boolean greyEncoded = false;
-	private String fileName;
-	private SupportedImageFormats sourceFormat;
+	protected BitMap[][] bitmaps;
+	protected int width;
+	protected int height;
+	protected boolean greyEncoded = false;
+	protected String fileName;
+	protected SupportedImageFormats sourceFormat;
 	
 	public int getWidth() {
 		return width;
@@ -180,5 +180,13 @@ public class BitImageSet {
 	
 	public String saveImage(String fileName) {
 		return convertToImage(fileName, sourceFormat);
+	}
+	
+	public static void saveImage(BufferedImage image, String path) {
+		try {
+			ImageIO.write(image, "png", new File(path));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

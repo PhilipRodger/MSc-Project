@@ -9,11 +9,11 @@ import java.util.Random;
 
 
 public class BitMap {
-	private int width;
-	private int height;
-	private boolean[][] image;
-	private Channel channel;
-	private int bitmap;
+	protected int width;
+	protected int height;
+	protected boolean[][] image;
+	protected Channel channel;
+	protected int bitmap;
 
 	public int getWidth() {
 		return width;

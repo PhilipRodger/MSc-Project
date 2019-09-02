@@ -1,5 +1,7 @@
 package minimal;
 
+import java.awt.Color;
+
 public enum Channel {
 	RED, GREEN, BLUE;
 
@@ -25,5 +27,25 @@ public enum Channel {
 			return 2;
 		}
 		return -1;
+	}
+	
+	
+	
+	// Below used for colourising bit plane visualisations, not used for plain old steganography. 
+	
+	private static final int pureRed = Color.RED.getRGB();
+	private static final int pureGreen = Color.GREEN.getRGB();
+	private static final int pureBlue = Color.BLUE.getRGB();
+	
+	public static int getPureColour (Channel colour) {
+		switch(colour) {
+		case RED:
+			return pureRed;
+		case GREEN:
+			return pureGreen;
+		case BLUE:
+			return pureBlue;
+		}
+		return 0;
 	}
 }

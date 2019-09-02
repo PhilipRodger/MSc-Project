@@ -191,24 +191,7 @@ public class BitImageSet {
 		return bitmaps[Channel.channelMapping(channel)][bitIndex].getBitMapCompexityDistribution(width, height);
 	}
 
-	public void saveBitMapImages(String baseName, String fileExtension) {
-		for (int channelIndex = 0; channelIndex < RGBPixel.NUMBER_OF_CHANNELS; channelIndex++) {
-			for (int channelBitIndex = 0; channelBitIndex < RGBPixel.NUMBER_OF_BITS_PER_CHANNEL; channelBitIndex++) {
-				saveBitMapImage(baseName, fileExtension, channelIndex, channelBitIndex);
-			}
-		}
-	}
-
-	public void saveBitMapImage(String baseName, String fileExtension, int channelIndex, int bitIndex) {
-		BufferedImage bitmapImage = bitmaps[channelIndex][bitIndex]
-				.getBitMapImage(Channel.getPureColour(Channel.channelMapping(channelIndex)));
-		String encoding = "BinaryEncoded";
-		if (greyEncoded) {
-			encoding = "GreyEncoded";
-		}
-		String path = baseName + Channel.channelMapping(channelIndex) + bitIndex + encoding + fileExtension;
-		saveImage(bitmapImage, path);
-	}
+	
 
 	public void saveBitMapImageHighlightComplexity(String baseName, String fileExtension, Channel channel, int bitIndex,
 			int frameWidth, int frameHeight, double minimumComplexity, double maximumComplexity) {
