@@ -16,6 +16,7 @@ public class BPCS{
 	public static final boolean CONVERT_TO_GRAY = true;
 	// Sensible default
 	public static final String defaultStegKey = "This is a default steganographic key";
+	protected boolean defaultSaveReplacementImage = false;
 
 	public BPCS(String vessilPath) {
 		inputImage = BitImageSet.makeBitImageSet(vessilPath, CONVERT_TO_GRAY);
@@ -48,11 +49,34 @@ public class BPCS{
 		}
 	}
 
-	public String embedFile(String path) {
+	public ArrayList<String> embedFile(String path) {
 		return embedFile(path, defaultStegKey);
 	}
 	
-	public String embedFile(String payloadPath, String stegKey) {
+	public ArrayList<String> embedFile(String payloadPath, String stegKey) {
+		if (payloadPath != null) {
+			ArrayList<BitMap> payloadSegments = getPayloadSegments(payloadPath, stegKey);
+			outputImage = manager.replaceWithPayload(payloadSegments);
+		} else {
+			outputImage = manager.getMaxReplacement();
+		}
+		ArrayList<String> paths = new ArrayList<>();
+		paths.add(outputImage.saveImage(getOutputFilePath()));
+		if (defaultSaveReplacementImage) {
+			paths.addAll(outputImage.saveBitPlaneImages(getOutputFilePath()));
+		}
+		return paths;
+	}
+	
+	public ArrayList<String> maxEmbed() {
+		return embedFile(null);
+	}
+	
+	public void saveReplacementImages(boolean defaultSaveReplacementImage) {
+		this.defaultSaveReplacementImage = defaultSaveReplacementImage;
+	}
+	
+	public ArrayList<BitMap> getPayloadSegments(String payloadPath, String stegKey) {
 		Payload payload = new Payload(payloadPath, manager);
 		try {
 			payload.performEncryptDecrypt(stegKey, CipherMode.ENCRYPT);
@@ -66,14 +90,19 @@ public class BPCS{
 			// Payload is too big for vessel
 			throw new AssertionError("Payload is too big for vessel estimated max payload = " + manager.getMaxPayloadBytes() + " bytes");
 		}
-
-		ArrayList<BitMap> payloadSegments = payload.getSegments();
-		
-		BitImageSet output = manager.replaceWithPayload(payloadSegments);
-		double psnr = Statistics.psnr_rgb(inputImage.getBufferedImage().getRaster(), output.getBufferedImage().getRaster());
-		String filename = String.format(" %s PSNR=%.2fdB Max_Payload=%dbytes", toString(), psnr, manager.getMaxPayloadBytes());
-		return output.saveImage(filename);
+		return payload.getSegments();
 	}
+	
+	public String getOutputFilePath() {
+		if (outputImage == null) {
+			String filename = String.format(" %s Max_Payload=%dbytes", toString(), manager.getMaxPayloadBytes());
+			return filename;
+		}
+		double psnr = Statistics.psnr_rgb(inputImage.getBufferedImage().getRaster(), outputImage.getBufferedImage().getRaster());
+		String filename = String.format(" %s PSNR=%.2fdB Max_Payload=%dbytes", toString(), psnr, manager.getMaxPayloadBytes());
+		return filename;
+	}
+	
 	
 	public void extractFile(String extractPath){
 		extractFile(extractPath, defaultStegKey);
@@ -91,8 +120,7 @@ public class BPCS{
 	
 	@Override
 	public String toString() {
-		return " Algorithim=" + manager + " SegmentWidth=" + segmentWidth
+		return manager + " SegmentWidth=" + segmentWidth
 				+ " SegmentHeight=" + segmentHeight;
 	}
-
 }

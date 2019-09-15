@@ -2,18 +2,18 @@ package release;
 
 import java.util.HashMap;
 
-public class ConstantAlphaClassifier extends SegmentManager{
+public class Original extends SegmentManager{
 
 	private double alphaCutoff = 0.3;
 	
 	
-	public ConstantAlphaClassifier(double alphaCutoff) {
+	public Original(double alphaCutoff) {
 		super();
 		this.alphaCutoff = alphaCutoff;
 		complexityDefinition = new AlphaComplexity();
 	}
 
-	public ConstantAlphaClassifier(HashMap<String, String> params) {
+	public Original(HashMap<String, String> params) {
 		super();
 		if (params.containsKey("threshold")) {
 			alphaCutoff = Double.parseDouble(params.get("threshold"));
@@ -41,5 +41,11 @@ public class ConstantAlphaClassifier extends SegmentManager{
 	
 	private double getAlphaComplexity(int complexity) {
 		return complexity / (double) maxComplexity;
+	}
+	
+	@Override
+	public String toString() {
+		return " Algorithim=BPCS_Original AlphaCutoff=" + alphaCutoff + " SegmentWidth=" + segmentWidth
+				+ " SegmentHeight=" + segmentHeight;
 	}
 }

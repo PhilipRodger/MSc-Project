@@ -40,7 +40,8 @@ public class RGBPixel {
 		return new RGBPixel(grayRGB);
 	}
 
-	// This method is copied from https://www.geeksforgeeks.org/decimal-equivalent-gray-code-inverse/
+	// This method is copied from
+	// https://www.geeksforgeeks.org/decimal-equivalent-gray-code-inverse/
 	public static int convertBinaryToGray(int input) {
 		return input ^ (input >> 1);
 	}
@@ -67,5 +68,15 @@ public class RGBPixel {
 			return true;
 		}
 		return false;
+	}
+
+	public static int getPureRGB(Channel channel) {
+		if (channel == Channel.RED) {
+			return Color.RED.getRGB();
+		} else if (channel == Channel.GREEN) {
+			return Color.GREEN.getRGB();
+		} else {
+			return Color.BLUE.getRGB();
+		}
 	}
 }

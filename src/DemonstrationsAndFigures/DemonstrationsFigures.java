@@ -54,7 +54,7 @@ public class DemonstrationsFigures {
 		System.out.println(checkerBoard);
 		int checkerBoardComplexity = definition.getComplexity(checkerBoard);
 		System.out.println("Complexity = " + checkerBoardComplexity + "/" + maxPossibleComplexity);
-		BitMapSetForImages.saveImage(checkerBoard.getBitMapImage(Color.BLACK.getRGB(), 50), "ConjugationDemo " + definition + " checkerBoard"
+		BitImageSet.saveImage(checkerBoard.getBitMapImage(Color.BLACK.getRGB(), 50), "ConjugationDemo " + definition + " checkerBoard"
 				+ "Complexity" + checkerBoardComplexity + "Of" + maxPossibleComplexity + ".png");
 
 		// Original Smile XOR with Checker Board Pattern
@@ -62,7 +62,7 @@ public class DemonstrationsFigures {
 		System.out.println(xOr);
 		int xOrComplexity = definition.getComplexity(xOr);
 		System.out.println("Complexity = " + xOrComplexity + "/" + maxPossibleComplexity);
-		BitMapSetForImages.saveImage(xOr.getBitMapImage(Color.BLACK.getRGB(), 50),
+		BitImageSet.saveImage(xOr.getBitMapImage(Color.BLACK.getRGB(), 50),
 				"ConjugationDemo " + definition + "  xOrSmile" + "Complexity" + xOrComplexity + "Of" + maxPossibleComplexity + ".png");
 
 		// XOR XOR'd again with Checker Board Pattern
@@ -70,13 +70,13 @@ public class DemonstrationsFigures {
 		System.out.println(xOrXor);
 		int xOrXorComplexity = definition.getComplexity(xOrXor);
 		System.out.println("Complexity = " + xOrXorComplexity + "/" + maxPossibleComplexity);
-		BitMapSetForImages.saveImage(xOrXor.getBitMapImage(Color.BLACK.getRGB(), 50), "ConjugationDemo " + definition + " xOrXOrSmile"
+		BitImageSet.saveImage(xOrXor.getBitMapImage(Color.BLACK.getRGB(), 50), "ConjugationDemo " + definition + " xOrXOrSmile"
 				+ "Complexity" + xOrXorComplexity + "Of" + maxPossibleComplexity + ".png");
 	}
 	
 	public static void saveConjugateExample(ComplexityMeasure definition) {
 		BitMap checkerBoard = definition.getConjugationMap(4, 4);
-		BitMapSetForImages.saveImage(checkerBoard.getBitMapImage(Color.BLACK.getRGB(), 50), "4x4" + definition.toString() + "Mask.png");
+		BitImageSet.saveImage(checkerBoard.getBitMapImage(Color.BLACK.getRGB(), 50), "4x4" + definition.toString() + "Mask.png");
 	}
 
 	

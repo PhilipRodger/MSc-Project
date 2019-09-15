@@ -111,15 +111,24 @@ public abstract class SegmentManager {
 		}
 		return extracts;
 	}
-
+	
 	public BitImageSet replaceWithPayload(ArrayList<BitMap> payloadSegments) {
 		BitImageSet output = new BitImageSet(source);
 		for (int i = 0; i < payloadSegments.size(); i++) {
 			Coordinant toReplace = viableSegments.get(i);
-			output.replaceSegment(toReplace, payloadSegments.get(i));
+			output.addSegmentToReplacementImage(toReplace, payloadSegments.get(i));
 		}
 		return output;
-		
+	}
+	
+	public BitImageSet getMaxReplacement() {
+		BitImageSet output = new BitImageSet(source);
+		getViableSegments();
+		for (int i = 0; i < viableSegments.size(); i++) {
+			Coordinant toReplace = viableSegments.get(i);
+			output.addSegmentToReplacementImage(toReplace, conjugationMask);
+		}
+		return output;
 	}
 
 	public long getMaxPayloadBytes() {

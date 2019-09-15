@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class ConstantDiagonalComplexityClassifier extends SegmentManager{
 
-		private double diagonalCutoff;
+		private double diagonalCutoff = 0.3;
 		
 		public ConstantDiagonalComplexityClassifier(double diagonalCutoff) {
 			super();

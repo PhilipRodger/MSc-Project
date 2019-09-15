@@ -14,6 +14,7 @@ public class BitMap {
 	protected boolean[][] image;
 	protected Channel channel;
 	protected int bitmapIndex;
+	protected BufferedImage bitmapImage;
 
 	public int getWidth() {
 		return width;
@@ -134,7 +135,7 @@ public class BitMap {
 		return map;
 	}
 
-	//TODO: metadata used for returned map is copied from the first map.
+	// metadata used for returned map is copied from the first map.
 	public static BitMap xOr(BitMap firstBitMap, BitMap secondBitMap) {
 		BitMap result = new BitMap(firstBitMap.width, firstBitMap.height,  firstBitMap.channel,  firstBitMap.bitmapIndex);
 		for (int x = 0; x < firstBitMap.width; x++) {
@@ -157,10 +158,37 @@ public class BitMap {
 			}
 		}
 	}
+	public void replacementImageCoordinantWithBitmap(Coordinant toReplace, BitMap replacement) {
+		//First time should initialise the image
+		if (bitmapImage == null) {
+			createBitmapImage();
+		}
+		replaceCoordinantWithBitmap(toReplace, replacement);
+		int contrastRGB = Color.BLACK.getRGB();
+		
+		int startX = toReplace.getX();
+		int endX = startX + replacement.width;
+
+		int startY = toReplace.getY();
+		int endY = startY + replacement.height;
+		
+		for (int y = startY; y < endY; y++) {
+			for (int x = startX; x < endX; x++) {
+				bitmapImage.setRGB(x, y, contrastRGB);
+			}
+		}
+	}
+	
+	private void createBitmapImage() {
+		int contrastRGB  = RGBPixel.getPureRGB(channel);
+		bitmapImage = intialiseBitMapImage(contrastRGB); 
+	}
 
 	public BitMap(BitMap toClone) {
 		width = toClone.width;
 		height = toClone.height;
+		channel = toClone.channel;
+		bitmapIndex = toClone.bitmapIndex;
 		image = new boolean[toClone.image.length][];
 		for (int i = 0; i < image.length; i++) {
 			image[i] = toClone.image[i].clone();
@@ -173,7 +201,7 @@ public class BitMap {
 	}
 
 	
-	public BufferedImage getBitMapImage(int contrastRGB) {
+	private BufferedImage intialiseBitMapImage(int contrastRGB) {
 		BufferedImage bitmapImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
@@ -183,6 +211,13 @@ public class BitMap {
 					bitmapImage.setRGB(x, y, Color.WHITE.getRGB());
 				}
 			}
+		}
+		return bitmapImage;
+	}
+	
+	public BufferedImage getBitMapImage() {
+		if (bitmapImage == null) {
+			createBitmapImage();
 		}
 		return bitmapImage;
 	}

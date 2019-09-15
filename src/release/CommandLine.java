@@ -48,20 +48,27 @@ public class CommandLine {
 		
 		BPCS bpcs = Algorithims.createAlgorithim(algorithimType, params);
 		
+		if (params.containsKey("replacementimages")) {
+			boolean parsedArgument = Boolean.valueOf(params.get("replacementimages"));
+			bpcs.saveReplacementImages(parsedArgument);
+		}
+		
 		
 		if (!params.containsKey("mode")) {
 			showUsage();
 			throw new IllegalArgumentException("Must specify the mode of use e.g. 'mode=embed', 'mode=extract', or 'mode=roundtrip'");
 		}
 		String mode = params.get("mode");
+		ArrayList<String> stegoPath = null;
 		switch (mode) {
 		case "embed":
 			if (!params.containsKey("payload")) {
-				showUsage();
-				throw new IllegalArgumentException("Must specify the payload path you wish to embed using 'payload=[path]'");
+				stegoPath = bpcs.maxEmbed();
+				System.out.println("Succesfully embedded max, output: " + stegoPath);
+			} else {
+				stegoPath = bpcs.embedFile(params.get("payload"), stegKey);
+				System.out.println("Succesfully embedded, output: " + stegoPath);
 			}
-			String stegoPath = bpcs.embedFile(params.get("payload"), stegKey);
-			System.out.println("Succesfully embedded, output: " + stegoPath);
 			break;
 		case "extract":
 			if (!params.containsKey("payload")) {
@@ -79,7 +86,7 @@ public class CommandLine {
 			
 			// Embed Payload Step
 			stegoPath = bpcs.embedFile(params.get("payload"), stegKey);
-			params.put("vessel", stegoPath);
+			params.put("vessel", stegoPath.get(0));
 			System.out.println("Succesfully Embedded, output: " + stegoPath);
 			
 			// Clear so it can't cheat
@@ -102,10 +109,11 @@ public class CommandLine {
 				"	java -jar BPCS.jar <algorithim> mode=<mode> vessel=<vessel_path> payload=<payload_path>\r\n" + 
 				"<algorithim> = “original” / “modified” / “diagonal”\r\n" + 
 				"<mode> = “embed” / “extract” / “roundtrip”\r\n" + 
-				"<payload_path> = payload to embed or extracted payload will be saved.\r\n" +
+				"<payload_path> = payload to embed or extracted payload will be saved. Embeding will greate a miximally replaced image\r\n" +
 				"\n"+
 				"Optionals:\r\n" + 
 				"	threshold=<double> segmentwidth=<pixels> segmentheight=<pixels> key=<password>\r\n" + 
+				"	replacementImages=<boolean>\r\n" + 
 				"");
 	}
 }

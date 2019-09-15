@@ -21,7 +21,7 @@ public enum Algorithims {
 		BPCS bpcs = new BPCS(params);
 		switch (algorithim) {
 		case Original:
-			bpcs.setSegmentManager(new ConstantAlphaClassifier(params));
+			bpcs.setSegmentManager(new Original(params));
 			return bpcs;
 		case Modified:
 			bpcs.setSegmentManager(new ModifiedAlphaComplexityClassifier());

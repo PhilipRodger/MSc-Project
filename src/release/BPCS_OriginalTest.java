@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
@@ -29,15 +30,15 @@ class BPCS_OriginalTest {
 	void noStegKeyPayload() {
 		//embed 
 		BPCS bpcs = new BPCS(vesselImagePath);
-		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
-		String expectedStegoImagePath = bpcs.embedFile(payloadPath);
+		bpcs.setSegmentManager(new Original(0.3));
+		ArrayList<String> expectedStegoImagePath = bpcs.embedFile(payloadPath);
 		
 		//clear
 		bpcs = null;
 		
 		//extract
-		bpcs = new BPCS(expectedStegoImagePath);
-		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
+		bpcs = new BPCS(expectedStegoImagePath.get(0));
+		bpcs.setSegmentManager(new Original(0.3));
 		bpcs.extractFile(expectedExtractPath);
 		try {
 			Thread.sleep(1000);
@@ -50,13 +51,8 @@ class BPCS_OriginalTest {
 		}
 
 		// Tear Down
-		if (!new File(expectedStegoImagePath).delete()) {
-			System.out.println("Unable to Teardown " + expectedStegoImagePath);
-		}
-
-		if (!new File(expectedExtractPath).delete()) {
-			System.out.println("Unable to Teardown " + expectedExtractPath);
-		}
+		tearDown(expectedStegoImagePath);
+		tearDown(expectedExtractPath);
 	}
 	
 	
@@ -65,15 +61,15 @@ class BPCS_OriginalTest {
 		String key = "secret";
 		//embed 
 		BPCS bpcs = new BPCS(vesselImagePath);
-		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
-		String expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
+		bpcs.setSegmentManager(new Original(0.3));
+		ArrayList<String> expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
 		
 		//clear
 		bpcs = null;
 		
 		//extract
-		bpcs = new BPCS(expectedStegoImagePath);
-		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
+		bpcs = new BPCS(expectedStegoImagePath.get(0));
+		bpcs.setSegmentManager(new Original(0.3));
 		bpcs.extractFile(expectedExtractPath, key);
 		try {
 			Thread.sleep(1000);
@@ -86,13 +82,8 @@ class BPCS_OriginalTest {
 		}
 
 		// Tear Down
-		if (!new File(expectedStegoImagePath).delete()) {
-			System.out.println("Unable to Teardown " + expectedStegoImagePath);
-		}
-
-		if (!new File(expectedExtractPath).delete()) {
-			System.out.println("Unable to Teardown " + expectedExtractPath);
-		}
+		tearDown(expectedStegoImagePath);
+		tearDown(expectedExtractPath);
 	}
 	
 	@Test
@@ -101,8 +92,8 @@ class BPCS_OriginalTest {
 		String incorrectKey = "Secret";
 		
 		BPCS bpcs = new BPCS(vesselImagePath);
-		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
-		String expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
+		bpcs.setSegmentManager(new Original(0.3));
+		ArrayList<String> expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
 		
 		//clear
 		bpcs = null;
@@ -117,19 +108,15 @@ class BPCS_OriginalTest {
 		
 		try {
 			//extract
-			bpcs = new BPCS(expectedStegoImagePath);
-			bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
+			bpcs = new BPCS(expectedStegoImagePath.get(0));
+			bpcs.setSegmentManager(new Original(0.3));
 			bpcs.extractFile(expectedExtractPath, incorrectKey);
 		} catch (Exception e) {
 			// Invalid decryption key could cause many different exceptions or none.
 			// This is expected behaviour and should pass
 			// Tear Down
-			if (!new File(expectedStegoImagePath).delete()) {
-				System.out.println("Unable to Teardown " + expectedStegoImagePath);
-			}
-			if (!new File(expectedExtractPath).delete()) {
-				System.out.println("Unable to Teardown " + expectedExtractPath);
-			}
+			tearDown(expectedStegoImagePath);
+			tearDown(expectedExtractPath);
 			return;
 		}
 		try {
@@ -139,12 +126,30 @@ class BPCS_OriginalTest {
 		}
 
 		// Tear Down
-		if (!new File(expectedStegoImagePath).delete()) {
-			System.out.println("Unable to Teardown " + expectedStegoImagePath);
+		tearDown(expectedStegoImagePath);
+		tearDown(expectedExtractPath);
+	}
+	
+//	@Test
+//	void replacementImage() {
+//		BPCS bpcs = new BPCS(vesselImagePath);
+//		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
+//		String expectedStegoImagePath = bpcs.visualizeEmbedFile(payloadPath);
+//	}
+	
+	@Test
+	void maxReplacementImage() {
+		BPCS bpcs = new BPCS(vesselImagePath, 8, 8);
+		bpcs.setSegmentManager(new ConstantDiagonalComplexityClassifier(0.3));
+		bpcs.saveReplacementImages(true);
+		ArrayList<String> paths = bpcs.maxEmbed();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch blocks
+			e.printStackTrace();
 		}
-		if (!new File(expectedExtractPath).delete()) {
-			System.out.println("Unable to Teardown " + expectedExtractPath);
-		}
+		tearDown(paths);
 	}
 
 	public static boolean isFileContentEqual(String path1, String path2) throws IOException {
@@ -152,5 +157,17 @@ class BPCS_OriginalTest {
 		byte[] extracted = Files.readAllBytes(Paths.get(expectedExtractPath));
 
 		return Arrays.equals(original, extracted);
+	}
+	
+	public static void tearDown(ArrayList<String> path) {
+		for (String string : path) {
+			tearDown(string);
+		}
+	}
+	
+	public static void tearDown(String path) {
+		if (!new File(path).delete()) {
+			System.out.println("Unable to Teardown " + path);
+		}
 	}
 }

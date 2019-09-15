@@ -173,6 +173,10 @@ public class BitImageSet {
 	public void replaceSegment(Coordinant toReplace, BitMap replacement) {
 		bitmaps[Channel.channelMapping(toReplace.getChannel())][toReplace.getBitMap()].replaceCoordinantWithBitmap(toReplace, replacement);
 	}
+	
+	public void addSegmentToReplacementImage(Coordinant toReplace, BitMap replacement) {
+		bitmaps[Channel.channelMapping(toReplace.getChannel())][toReplace.getBitMap()].replacementImageCoordinantWithBitmap(toReplace, replacement);
+	}
 
 	public BitMap extractSegment(Coordinant coordanant, int segmentWidth, int segmentHeight) {
 		return bitmaps[Channel.channelMapping(coordanant.getChannel())][coordanant.getBitMap()].extractSegment(coordanant, segmentWidth, segmentHeight);
@@ -189,4 +193,30 @@ public class BitImageSet {
 			e.printStackTrace();
 		}
 	}
+	
+	// Bellow are methods used to make technical images for report, they are not
+		// used if you are just performing steganography, they are useful for
+		// visualisations of bitplanes ect.
+		public ArrayList<String> saveBitPlaneImages(String baseName) {
+			ArrayList<String> paths = new ArrayList<>();
+			for (int i = 0; i < bitmaps.length; i++) {
+				for (int j = 0; j < bitmaps[i].length; j++) {
+					paths.add(saveBitMapImage(baseName + fileName, i, j));
+				}
+			}
+			paths.add(saveImage(baseName));
+			return paths;
+		}
+
+		public String saveBitMapImage(String baseName, int channelIndex, int bitIndex) {
+			BitMap bitmap =  bitmaps[channelIndex][bitIndex];
+			BufferedImage bitmapImage = bitmap.getBitMapImage();
+			String encoding = "BinaryEncoded";
+			if (greyEncoded) {
+				encoding = "GreyEncoded";
+			}
+			String path = baseName + Channel.channelMapping(channelIndex) + bitIndex + encoding + ".png";
+			saveImage(bitmapImage, path);
+			return path;
+		}
 }
