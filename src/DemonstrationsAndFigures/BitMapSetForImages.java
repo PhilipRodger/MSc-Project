@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import release.BitImageSet;
+import release.BitMap;
 import release.Channel;
 
 public class BitMapSetForImages extends BitImageSet {
@@ -33,7 +34,7 @@ public class BitMapSetForImages extends BitImageSet {
 	}
 
 	public void saveBitMapImage(String baseName, int channelIndex, int bitIndex) {
-		BitMapForImages bitmap = (BitMapForImages) bitmaps[channelIndex][bitIndex];
+		BitMap bitmap =  bitmaps[channelIndex][bitIndex];
 		BufferedImage bitmapImage = bitmap.getBitMapImage(Channel.getPureColour(Channel.channelMapping(channelIndex)));
 		String encoding = "BinaryEncoded";
 		if (greyEncoded) {

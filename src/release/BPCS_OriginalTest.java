@@ -28,14 +28,16 @@ class BPCS_OriginalTest {
 	@Test
 	void noStegKeyPayload() {
 		//embed 
-		BPCS bpcs = new BPCS_Original(vesselImagePath);
+		BPCS bpcs = new BPCS(vesselImagePath);
+		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 		String expectedStegoImagePath = bpcs.embedFile(payloadPath);
 		
 		//clear
 		bpcs = null;
 		
 		//extract
-		bpcs = new BPCS_Original(expectedStegoImagePath);
+		bpcs = new BPCS(expectedStegoImagePath);
+		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 		bpcs.extractFile(expectedExtractPath);
 		try {
 			Thread.sleep(1000);
@@ -62,14 +64,16 @@ class BPCS_OriginalTest {
 	void stegProtectedKeyPayload() {
 		String key = "secret";
 		//embed 
-		BPCS bpcs = new BPCS_Original(vesselImagePath);
+		BPCS bpcs = new BPCS(vesselImagePath);
+		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 		String expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
 		
 		//clear
 		bpcs = null;
 		
 		//extract
-		bpcs = new BPCS_Original(expectedStegoImagePath);
+		bpcs = new BPCS(expectedStegoImagePath);
+		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 		bpcs.extractFile(expectedExtractPath, key);
 		try {
 			Thread.sleep(1000);
@@ -96,7 +100,8 @@ class BPCS_OriginalTest {
 		String key = "secret";
 		String incorrectKey = "Secret";
 		
-		BPCS bpcs = new BPCS_Original(vesselImagePath);
+		BPCS bpcs = new BPCS(vesselImagePath);
+		bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 		String expectedStegoImagePath = bpcs.embedFile(payloadPath, key);
 		
 		//clear
@@ -112,7 +117,8 @@ class BPCS_OriginalTest {
 		
 		try {
 			//extract
-			bpcs = new BPCS_Original(expectedStegoImagePath);
+			bpcs = new BPCS(expectedStegoImagePath);
+			bpcs.setSegmentManager(new ConstantAlphaClassifier(0.3));
 			bpcs.extractFile(expectedExtractPath, incorrectKey);
 		} catch (Exception e) {
 			// Invalid decryption key could cause many different exceptions or none.

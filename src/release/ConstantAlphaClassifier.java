@@ -1,19 +1,25 @@
 package release;
 
+import java.util.HashMap;
 
 public class ConstantAlphaClassifier extends SegmentManager{
 
-	private double alphaCutoff;
+	private double alphaCutoff = 0.3;
 	
-	// Does not change so can store it
-	private int maxComplexity;
 	
-	public ConstantAlphaClassifier(BitImageSet source, double alphaCutoff, int segmentWidth, int segmentHeight) {
-		super(source, segmentWidth, segmentHeight);
+	public ConstantAlphaClassifier(double alphaCutoff) {
+		super();
 		this.alphaCutoff = alphaCutoff;
 		complexityDefinition = new AlphaComplexity();
-		maxComplexity = complexityDefinition.maxComplexity(segmentWidth, segmentHeight);
-		conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
+	}
+
+	public ConstantAlphaClassifier(HashMap<String, String> params) {
+		super();
+		if (params.containsKey("threshold")) {
+			alphaCutoff = Double.parseDouble(params.get("threshold"));
+		}
+		complexityDefinition = new AlphaComplexity();
+
 	}
 
 	@Override

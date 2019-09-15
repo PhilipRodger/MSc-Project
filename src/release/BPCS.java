@@ -3,7 +3,7 @@ package release;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public abstract class BPCS{
+public class BPCS{
 	protected SegmentManager manager;
 	protected BitImageSet inputImage;
 	protected BitImageSet outputImage;
@@ -24,7 +24,14 @@ public abstract class BPCS{
 	public BPCS(String vessilPath, int segmentWidth, int segmentHeight) {
 		inputImage = BitImageSet.makeBitImageSet(vessilPath, CONVERT_TO_GRAY);
 		this.segmentWidth = segmentWidth;
-		this.segmentHeight = segmentHeight;
+		this.segmentHeight = segmentHeight; 
+	}
+	
+	public void setSegmentManager(SegmentManager manager) {
+		this.manager = manager;
+		manager.setBitImageSet(inputImage);
+		manager.setSegmentWidth(segmentWidth);
+		manager.setSegmentHeight(segmentHeight);
 	}
 	
 	public BPCS(HashMap<String, String> params) {
@@ -84,7 +91,7 @@ public abstract class BPCS{
 	
 	@Override
 	public String toString() {
-		return " Algorithim=BPCS SegmentWidth=" + segmentWidth
+		return " Algorithim=" + manager + " SegmentWidth=" + segmentWidth
 				+ " SegmentHeight=" + segmentHeight;
 	}
 

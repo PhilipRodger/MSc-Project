@@ -1,21 +1,17 @@
 package release;
 
 public class ModifiedAlphaComplexityClassifier extends SegmentManager{
-	// Does not change so can store it
-	private int maxComplexity;
 	
-	public ModifiedAlphaComplexityClassifier(BitImageSet source, int segmentWidth, int segmentHeight) {
-		super(source, segmentWidth, segmentHeight);
+	public ModifiedAlphaComplexityClassifier() {
+		super();
 		complexityDefinition = new AlphaComplexity();
-		maxComplexity = complexityDefinition.maxComplexity(segmentWidth, segmentHeight);
-		conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
 	}
 
 	@Override
 	protected boolean meetsCriteriaForSegmentSelection(Coordinant candidate) {
 		BitMap toCheck = source.extractSegment(candidate, segmentWidth, segmentHeight);
 		int complexity = complexityDefinition.getComplexity(toCheck);
-		double alphaComplexity = getAlphaComplexity(complexity);
+		double alphaComplexity = getNormalisedComplexity(complexity);
 		if (alphaComplexity >= getThreshold(candidate)) {
 			return true;
 		} else {
@@ -26,7 +22,7 @@ public class ModifiedAlphaComplexityClassifier extends SegmentManager{
 	@Override
 	protected boolean meetsCriteriaForPayloadEmbed(BitMap toCheck) {
 		int complexity = complexityDefinition.getComplexity(toCheck);
-		double alphaComplexity = getAlphaComplexity(complexity);
+		double alphaComplexity = getNormalisedComplexity(complexity);
 		if (alphaComplexity > AlphaComplexity.middleComplexity) {
 			return true;
 		} else {
@@ -54,8 +50,9 @@ public class ModifiedAlphaComplexityClassifier extends SegmentManager{
 		}
 	}
 	
-	public double getAlphaComplexity(int complexity) {
-		return complexity / (double) maxComplexity;
+	@Override
+	public String toString() {
+		return " Algorithim=BPCS_Modified SegmentWidth=" + segmentWidth + " SegmentHeight=" + segmentHeight;
 	}
 
 }

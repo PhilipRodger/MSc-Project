@@ -12,6 +12,9 @@ public abstract class SegmentManager {
 	protected BitMap conjugationMask;
 	protected ArrayList<Coordinant> viableSegments;
 	
+	// Does not change so can store it
+	protected int maxComplexity;
+	
 	private long maxPossibleInfo;
 	private int bitsToAddressBits;
 	
@@ -34,7 +37,32 @@ public abstract class SegmentManager {
 		return viableSegments.size();
 	}
 	
+	public void setBitImageSet(BitImageSet source) {
+		this.source = source;
+	}
+	
+	
+	
+	public void setSegmentWidth(int segmentWidth) {
+		this.segmentWidth = segmentWidth;
+		makeConsitant();
+	}
+
+	public void setSegmentHeight(int segmentHeight) {
+		this.segmentHeight = segmentHeight;
+		makeConsitant();
+	}
+	
+	private void makeConsitant() {
+		maxComplexity = complexityDefinition.maxComplexity(segmentWidth, segmentHeight);
+		conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
+		segmentCapacity = segmentHeight * segmentWidth;
+	}
+
 	public ArrayList<Coordinant> getViableSegments() {
+		if (viableSegments == null) {
+			getViableFrameCorners();
+		}
 		return viableSegments;
 	}
 
@@ -42,11 +70,7 @@ public abstract class SegmentManager {
 	
 	protected abstract boolean meetsCriteriaForPayloadEmbed(BitMap check);
 
-	public SegmentManager(BitImageSet source,int segmentWidth, int segmentHeight) {
-		this.source = source;
-		this.segmentWidth = segmentWidth;
-		this.segmentHeight = segmentHeight;
-		segmentCapacity = segmentHeight * segmentWidth;
+	public SegmentManager() {
 	}
 
 	public ArrayList<Coordinant> getViableFrameCorners(){
@@ -100,5 +124,9 @@ public abstract class SegmentManager {
 
 	public long getMaxPayloadBytes() {
 		return maxPossibleInfo/8;
+	}
+	
+	public double getNormalisedComplexity(int complexity) {
+		return complexity / (double) maxComplexity;
 	}
 }

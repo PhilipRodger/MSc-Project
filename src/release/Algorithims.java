@@ -18,13 +18,17 @@ public enum Algorithims {
 	}
 	
 	public static BPCS createAlgorithim(Algorithims algorithim, HashMap<String, String> params) {
+		BPCS bpcs = new BPCS(params);
 		switch (algorithim) {
 		case Original:
- 			return new BPCS_Original(params);
+			bpcs.setSegmentManager(new ConstantAlphaClassifier(params));
+			return bpcs;
 		case Modified:
-			return new BPCS_Modified(params);
+			bpcs.setSegmentManager(new ModifiedAlphaComplexityClassifier());
+			return bpcs;
 		case Diagonal:
-			return new BPCS_Diagonal(params);
+			bpcs.setSegmentManager(new ConstantDiagonalComplexityClassifier(params));
+			return bpcs;
 		default:
 			throw new IllegalArgumentException("Must specify what algorithim to use e.g.'algorithim=BPCS_Original'");
 		}

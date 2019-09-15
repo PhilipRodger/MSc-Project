@@ -18,7 +18,7 @@ public class DemonstrationsFigures {
 		// Demonstration of conjugation
 
 		// make smiley face bitmap
-		BitMapForImages bitMap = new BitMapForImages(8, 8);
+		BitMap bitMap = new BitMap(8, 8);
 		bitMap.setBit(1, 1);
 		bitMap.setBit(2, 1);
 		bitMap.setBit(1, 2);

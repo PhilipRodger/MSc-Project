@@ -1,19 +1,24 @@
 package release;
 
+import java.util.HashMap;
+
 public class ConstantDiagonalComplexityClassifier extends SegmentManager{
-	
 
 		private double diagonalCutoff;
 		
-		// Does not change so can store it
-		private int maxComplexity;
-		
-		public ConstantDiagonalComplexityClassifier(BitImageSet source, double diagonalCutoff, int segmentWidth, int segmentHeight) {
-			super(source, segmentWidth, segmentHeight);
+		public ConstantDiagonalComplexityClassifier(double diagonalCutoff) {
+			super();
 			this.diagonalCutoff = diagonalCutoff;
 			complexityDefinition = new DiagonalComplexity();
-			maxComplexity = complexityDefinition.maxComplexity(segmentWidth, segmentHeight);
-			conjugationMask = complexityDefinition.getConjugationMap(segmentWidth, segmentHeight);
+		}
+
+		public ConstantDiagonalComplexityClassifier(HashMap<String, String> params) {
+			super();
+			if (params.containsKey("threshold")) {
+				this.diagonalCutoff = Double.parseDouble(params.get("threshold"));
+			}
+			complexityDefinition = new DiagonalComplexity();
+			
 		}
 
 		@Override
@@ -25,15 +30,17 @@ public class ConstantDiagonalComplexityClassifier extends SegmentManager{
 		@Override
 		protected boolean meetsCriteriaForPayloadEmbed(BitMap toCheck) {
 			int complexity = complexityDefinition.getComplexity(toCheck);
-			double alphaComplexity = getDiagonalComplexity(complexity);
-			if (alphaComplexity >= diagonalCutoff) {
+			double diagonalComplexity = getNormalisedComplexity(complexity);
+			if (diagonalComplexity >= diagonalCutoff) {
 				return true;
 			} else {
 				return false;
 			}
 		}
-		
-		public double getDiagonalComplexity(int complexity) {
-			return complexity / (double) maxComplexity;
+				
+		@Override
+		public String toString() {
+			return " Algorithim=BPCS_Diagonal DiagonalCutoff=" + diagonalCutoff + " SegmentWidth=" + segmentWidth
+					+ " SegmentHeight=" + segmentHeight;
 		}
 }
